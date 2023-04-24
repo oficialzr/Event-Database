@@ -1,0 +1,35 @@
+{% extends 'index.html' %}
+
+{% load static %}
+
+
+{% block content %}
+
+    <div class="right-position">
+        <a id="dwn-html" href="">Скачать HTML</a>
+        <br>
+        <a id="dwn-word" href="">Скачать Word</a>
+    </div>
+
+    <div class="injured">
+        <h1>{{ table_name }}</h1>
+        <table style="width: 50%">
+            {% for key, value in person %}
+                <tr>
+                    <td style="border: 2px black solid;"><b>{{ key }}</b></td>
+                    <td style="border: 2px black solid;">{{ value }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <h1>Где фигурирует:</h1>
+    {% if not events %}
+        <h3 style="color: grey">Нет данных</h3>
+    {% else %}
+    {% for i in events %}
+        <a href="{% url 'event' i.id %}" class="event-href">{{ i }}</a><br>
+    {% endfor %}
+    {% endif %}
+
+{% endblock %}

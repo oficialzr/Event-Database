@@ -1,0 +1,351 @@
+/* ROOT */
+
+:root {
+    --button-background:lightgray;
+    --button-border: 2px grey solid;
+    --button-background-hover: gainsboro;
+}
+
+body {
+    padding: 0px;
+    margin: 0px;
+    font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+}
+
+section {
+    background-color:beige;
+    padding: 100px 200px;
+    min-height: 100vh;
+}
+
+navbar {
+    background-color: none;
+}
+
+.warnings {
+    color: red;
+    font-weight: 600;
+}
+
+a {
+    color: black;
+    text-decoration: none;
+}
+
+ul, li {
+    list-style: none;
+}
+
+
+/* HEADER */
+
+.navbar {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.navbar-content {
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    padding-top: 20px;
+}
+
+#logoLink {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.icon {
+    width: 60%;
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    padding-left: 40px;
+}
+
+.icon p {
+    font-size: 24px;
+    margin-top: -5px;
+    padding-left: 40px;
+}
+
+.icon .logo {
+    width: 200px;
+    height: 100px;
+    background-image: url('../images/tbm-logo.jpg');
+    background-size: cover;
+    background-position: 0px -6px;
+}
+
+#arrow-header {
+    font-size: 20px;
+    position: relative;
+    top: 1px;
+}
+
+
+.navbar-content > ul {
+    width: 40%;
+    display: flex;
+    flex-direction: row;
+    list-style: none;
+    justify-content: space-evenly;
+    font-size: 24px;
+    padding-top: 0px;
+}
+
+#list-values {
+    display: none;
+    position: absolute;
+    top: 80px;
+    border: 2px solid black;
+    background-color: white;
+    padding-block: 10px;
+    padding-inline: 0px;
+}
+
+#list-values > li {
+    padding-block: 5px;
+    padding-inline: 10px;
+}
+
+#list-values > li:hover {
+    background-color: var(--button-background-hover);
+}
+
+
+/* MAIN PAGE */
+
+.header-main {
+    display: flex;
+    justify-content: space-between;
+    /* border: 2px black solid; */
+    align-items: center;
+}
+
+.sort-search {
+    display: flex;
+    align-content: center;
+}
+
+.sort-search > a {
+    font-size: 20px;
+    padding-right: 10px;
+    margin-top: 2px;
+}
+
+.search {
+    padding-left: 70px;
+    display: flex;
+    align-items: center;
+}
+
+.search > input {
+    height: 30px;
+    font-size: 20px;
+}
+
+.search a {
+    text-decoration: none;
+    color: black;
+    margin-top: 4px;
+}
+
+.search span {
+    font-size: 30px;
+    padding-left: 10px;
+}
+
+
+/* TABLE  */
+
+.table-main {
+    margin-top: 80px;
+    width: 100%;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+th {
+    border: 2px solid black;
+    padding: 10px;
+    width: 200px;
+    font-weight: 600;
+}
+
+#intruder {
+    width: 400px;
+}
+
+#id {
+    width: 80px;
+}
+
+#date {
+    width: 100px;
+}
+
+#type {
+    width: 150px;
+}
+
+#empty-col > div {
+    display: flex;
+    justify-content: space-evenly;
+}
+
+#empty-col a {
+    font-weight: 700;
+    text-decoration: none;
+    padding-left: 10px;
+    color: black;
+    display: flex;
+}
+
+#empty-col span {
+    font-size: 20px;
+}
+
+#empty-col a:hover {
+    color:blue ;
+}
+
+/* BUTTON EVENT */
+
+
+#add-event {
+    background-color:var(--button-background);
+
+    font-size: 20px;
+    font-weight: 600;
+
+    border: var(--button-border);
+    cursor: pointer;
+
+    padding: 10px 50px;
+
+    text-decoration: none;
+    color: black;
+}
+
+#add-event:hover {
+    background-color: var(--button-background-hover);
+}
+
+/* FORMS */
+
+#event-form {
+    display: flex;
+    flex-direction: column;
+}
+
+#event-form input {
+    width: 400px;
+    height: 25px;
+    font-size: 20px;
+    margin-bottom: 20px;
+}
+
+#autoComplete {
+    position: relative;
+}
+
+#event-form ul {
+    width: 400px;
+    position: absolute;
+    max-height: 226px;
+    overflow-y: scroll;
+    box-sizing: border-box;
+    left: 10;
+    top: 30;
+    margin: 0.5rem 0 0 0;
+    padding: 0;
+    z-index: 1;
+    list-style: none;
+    border-radius: 0.6rem;
+    background-color: #fff;
+    border: 1px solid rgba(33, 33, 33, 0.07);
+    box-shadow: 0 3px 6px rgba(149, 157, 165, 0.15);
+}
+
+#event-form li {
+    font-size: 20px;
+}
+
+#event-form li:hover {
+    background-color: var(--button-background-hover);
+    cursor: pointer;
+}
+
+
+
+#event-form textarea {
+    width: 400px;
+    height: 100px;
+    margin-bottom: 20px;
+    font-size: 20px;
+}
+
+#event-form button {
+    font-size: 16px;
+    margin-top: 30px;
+    width: 200px;
+    height: 40px;
+}
+
+/* TABLE*/
+
+.right-position {
+    display: flex;
+    flex-direction: column;
+    justify-content: end;
+    align-items: end;
+    padding: 20px 0px;
+}
+
+#dwn-html, #dwn-word {
+    font-size: 24px;
+    background-color: var(--button-background);
+    border: var(--button-border);
+    padding: 5px 10px;
+    width: 150px;
+    text-align: center;
+}
+
+#dwn-html:hover, #dwn-word:hover {
+    background-color: var(--button-background-hover);
+}
+
+
+.table-view table {
+    width: 50% !important;
+    margin-bottom: 30px;
+}
+
+.table-view td {
+    padding: 5px 10px;
+    width: 50%;
+    border: 1px black solid;
+}
+
+.injured td, .witness td {
+    width: 50%;
+    font-size: 20px;
+}
+
+.injured table, .witness table {
+    margin-bottom: 30px;
+}
+
+
+/* PEOPLES */
+
+.event-href {
+    font-size: 20px;
+    color: blue;
+}

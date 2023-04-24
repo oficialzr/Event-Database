@@ -1,0 +1,29 @@
+{% extends 'index.html' %}
+
+{% load static %}
+
+{% block content %}
+
+    <form id="event-form" method="post" action="">
+        <h1>{{ header }}</h1>
+        {% csrf_token %}
+        {% for obj in form %}
+            {% if obj.label == 'ФИО нарушителя' %}
+                {{ obj.label }}
+                <input id="autoComplete" type="text" name="intruder" required="" id="id_intruder">
+            {% else %}
+                {{ obj.label }}
+                {{ obj }}
+            {% endif %}
+        {% endfor %}
+        {% if id_add == 1 or id_add == 2 %}
+            {% if request.session.event_id %}
+                {{ request.session.event_id }}
+                <button name="add-more" type="submit">Добавить еще одно лицо</button>
+            {% endif %}
+        {% endif %}
+        <button name="submit" type="submit">Подтвердить данные</button>
+
+    </form>
+
+{% endblock %}

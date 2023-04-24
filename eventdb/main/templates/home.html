@@ -1,0 +1,119 @@
+{% extends 'index.html' %}
+
+{% block content %}
+
+    <div class="main-content">
+        <div class="header-main">
+            <div class="add-btn">
+                {% if injured %}
+                <a href="{% url 'add-injured' %}" id="add-event">Добавить потерпевшего</a>
+                {% elif witness %}
+                <a href="{% url 'add-witness' %}" id="add-event">Добавить свидетеля</a>
+                {% elif intruders_id %}
+                <a href="{% url 'add-solo-intruder' %}" id="add-event">Добавить нарушителя</a>
+                {% else %}
+                <a href="{% url 'add-event' %}" id="add-event">Добавить событие</a>
+                {% endif %}
+            </div>
+            <div class="sort-search">
+                <a>Сортировка:</a>
+                <select name="sort" id="sortId">
+                    <option value="По дате: раньше">По дате: раньше</option>
+                    <option value="По дате: позже">По дате: позже</option>
+                    <option value="По фамилии: А-Я">По фамилии: А - Я</option>
+                    <option value="По фамилии: Я-А">По фамилии: Я - А</option>
+                    <option value="По фамилии автора: А-Я">По фамилии автора: А - Я</option>
+                    <option value="По фамилии автора: Я-А">По фамилии автора: Я - А</option>
+                </select>
+                <div class="search">
+                    <input type="search">
+                    <a href=""><span class="material-symbols-outlined">search</span></a>
+                </div>
+            </div>
+        </div>
+        <table class="table-main">
+            <h1 style="text-align: center; padding-top: 30px; font-size: 32px;">{{ name }}</h1>
+            {% if people %}
+                <tr>
+                    <th id="id">№ {{ name_number }}</th>
+                    <th id="date">Фамилия</th>
+                    <th id="type">Имя</th>
+                    <th id="intruder">Отчество</th>
+                    <th>День рождения</th>
+                    <th id="empty-col">Действия</th>
+                </tr>
+                {% for line in people %}
+                    <tr>
+                        <th id="id">{{ line.id }}</th>
+                        <th>{{ line.last_name }}</th>
+                        <th>{{ line.first_name }}</th>
+                        <th>{{ line.who_is }}</th>
+                        <th>{{ line.birthday }}</th>
+                        <th id="empty-col">
+                            <div>
+                                {% if injured %}
+                                <a href="{% url 'injured' line.id %}">Открыть<span class="material-symbols-outlined">open_in_new</span></a>
+                                <a id="edit" href="">Редактировать<span class="material-symbols-outlined">edit</span></a>
+                                {% else %}
+                                <a href="{% url 'witness' line.id %}">Открыть<span class="material-symbols-outlined">open_in_new</span></a>
+                                <a id="edit" href="">Редактировать<span class="material-symbols-outlined">edit</span></a>
+                                {% endif %}
+                            </div>
+                        </th>
+                    </tr>
+                {% endfor %}
+            {% elif intruders %}
+                <tr>
+                    <th id="id">№ {{ name_number }}</th>
+                    <th style="width: 400px;">ФИО нарушителя</th>
+                    <th id="date">Фамилия</th>
+                    <th id="type">Имя</th>
+                    <th id="intruder">Отчество</th>
+                    <th style="width: 300px">Описание</th>
+                    <th id="empty-col">Действия</th>
+                </tr>
+                {% for line in intruders %}
+                    <tr>
+                        <th id="id">{{ line.id }}</th>
+                        <th>{{ line.intruder_fio }}</th>
+                        <th>{{ line.last_name }}</th>
+                        <th>{{ line.first_name }}</th>
+                        <th>{{ line.second_name }}</th>
+                        <th>{{ line.description }}</th>
+                        <th id="empty-col">
+                            <div>
+                                <a href="{% url 'intruder' line.id %}">Открыть<span class="material-symbols-outlined">open_in_new</span></a>
+                                <a id="edit" href="{% url 'intruder-update' line.id %}">Редактировать<span class="material-symbols-outlined">edit</span></a>
+                            </div>
+                        </th>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <th id="id">№ {{ name_number }}</th>
+                    <th id="date">Дата события</th>
+                    <th id="type">Вид события</th>
+                    <th id="intruder">ФИО нарушителя</th>
+                    <th>Автор</th>
+                    <th id="empty-col">Действия</th>
+                </tr>
+                {% for line in violations %}
+                <tr>
+                    <th id="id">{{ line.id }}</th>
+                    <th id="date">{{ line.date_incedent }}</th>
+                    <th id="type">{{ line.type }}</th>
+                    <th>{{ line.intruder }}</th>
+                    <th>{{ line.author }}</th>
+                    <th id="empty-col">
+                        <div>
+                            <a href="{% url 'event' line.id %}">Открыть<span class="material-symbols-outlined">open_in_new</span></a>
+                            <a id="edit" href="">Редактировать<span class="material-symbols-outlined">edit</span></a>
+                        </div>
+                    </th>
+                </tr>
+                {% endfor %}
+            {% endif %}
+        </table>
+    </div>
+
+{% endblock %}

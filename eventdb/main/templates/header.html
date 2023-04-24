@@ -1,0 +1,30 @@
+{% load static %}
+
+<div class="navbar">
+    <div class="navbar-content">
+        <div class="icon">
+            <div id="logoLink">
+                <div class="logo"></div>
+                <p>АИС "База данных событий"</p>
+            </div>
+        </div>
+        <ul>
+            <li><a style="font-weight: 800;">Админ-панель</a></li>
+            <li>
+                <ul>
+                    <li class="view-list">
+                        <a id="view" href="#">Просмотр <span id="arrow-header">▼</span></a>
+                        <ul id="list-values">
+                           <li><a href="/">События</a></li>
+                           <li><a href="/intruders">Нарушители</a></li>
+                           <li><a href="/injureds">Потерпевшие</a></li> 
+                           <li><a href="/witnesses">Свидетели</a></li> 
+                        </ul>
+                    </li>
+
+                </ul>
+            </li>
+            <li><a>Выйти</a></li>
+        </ul>
+    </div>
+</div>
