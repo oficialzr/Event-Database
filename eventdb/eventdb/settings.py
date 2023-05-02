@@ -100,9 +100,11 @@ AUTH_PASSWORD_VALIDATORS = [
 USE_I18N = True
 USE_L10N = False
 
+TIME_ZONE = 'Europe/Moscow'
+
 LANGUAGE_CODE = 'ru-RU'
 
-DATE_FORMAT = 'd E Y'
+DATE_FORMAT = 'd.m.Y'
 
 
 # Static files (CSS, JavaScript, Images)

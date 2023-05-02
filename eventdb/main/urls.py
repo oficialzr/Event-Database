@@ -1,33 +1,35 @@
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path
 
-from .views import startPage, injuredsView, intrudersView, witnessView, intruderPersonView, witnessPersonView, injuredPersonView, addSoloIntruder, addIntruder, addEvent, searchIntruder, eventView, addWitness, addInjured
-from .views import editIntruder
+from .views import addEvent, eventView
+from .views import startPage
+from .views import personsView, eventsView
+from .views import personView
+from .views import addPersonSolo
+from .views import searchPerson
+
+from .views import get_request, delete_person, check_person, createRelations
 
 
 urlpatterns = [
     path('', startPage, name='home'),
-    path('injureds', injuredsView, name='injureds'),
-    path('witnesses', witnessView, name='witnesses'),
-    path('intruders', intrudersView, name='intruders'),
 
+    path('events/', eventsView, name='events'),
+    path('persons/', personsView, name='persons'),
+    path('injureds/', personsView, {'role': 'injureds'}, name='injureds'),
+    path('witnesses/', personsView, {'role': 'witnesses'}, name='witnesses'),
+    path('intruders/', personsView, {'role': 'intruders'}, name='intruders'),
 
-
-    path('add-intruder/', addIntruder, name='add-intruder'),
+    path('add-person/', addPersonSolo, name='add-person'),
     path('add-event/', addEvent, name='add-event'),
-    path('add-witness/', addWitness, name='add-witness'),
-    path('add-injured/', addInjured, name='add-injured'),
-    path('add-solo-intruder', addSoloIntruder, name='add-solo-intruder'),
+    path('create-relations/<slug:event_id>', createRelations, name='create-relations'),
 
     path('event/<int:event_id>', eventView, name='event'),
-    path('injured/<int:injured_id>', injuredPersonView, name='injured'),
-    path('witness/<int:witness_id>', witnessPersonView, name='witness'),
-    path('intruder/<int:intruder_id>', intruderPersonView, name='intruder'),
+    path('person/<int:person_id>', personView, name='person'),
 
-    path('intruder-update/<int:intruder_id>', editIntruder, name='intruder-update'),
+    path('search/', searchPerson),
 
-
-
-
-    path('search/', searchIntruder),
+    path('add-person-on-event/<slug:id>', get_request),
+    path('delete-person/<slug:id>', delete_person),
+    path('check-person/<slug:id>', check_person),
 ]

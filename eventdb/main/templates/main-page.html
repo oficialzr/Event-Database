@@ -1,0 +1,31 @@
+{% extends 'index.html' %}
+
+{% block title %}<title>ED - Home</title>{% endblock %}
+
+
+{% block content %}
+
+    <div class="main-content">
+        <h1 class="header-page">База данных событий</h1>
+        <h2 style="text-align: center; padding-bottom: 20px;">Добавление</h2>
+        <div class="center-col">
+            <a class="add-btn" href="{% url 'add-event' %}">Добавить событие</a>
+            <br>
+            <a class="add-btn" href="{% url 'add-person' %}">Добавить лицо</a>
+        </div>
+        <h2 style="text-align: center; padding-bottom: 20px;">Просмотр</h2>
+        <div class="center-col">
+            <a class="add-btn" href="{% url 'events' %}">События</a>
+            <br>
+            <a class="add-btn" href="{% url 'persons' %}">Лица</a>
+            <br>
+            <br>
+            <a class="add-btn" href="{% url 'intruders' %}">Нарушители</a>
+            <br>
+            <a class="add-btn" href="{% url 'witnesses' %}">Свидетели</a>
+            <br>
+            <a class="add-btn" href="{% url 'injureds' %}">Потерпевшие</a>
+        </div>
+    </div>
+
+{% endblock %}

@@ -4,75 +4,100 @@
 
 
 {% block content %}
-    <div class="right-position">
-        <a id="dwn-html" href="">Скачать HTML</a>
-        <br>
-        <a id="dwn-word" href="">Скачать Word</a>
-    </div>
-    <div class="table-view">
-        <h1>Событие</h1>
-        <table style="width: 50%">
-            {% for key, value in event %}
-            {% if key == 'ФИО нарушителя' %}
-            <tr>
-                <td style="border: 1px black solid;"><b>{{ key }}</b></td>
-                <td style="border: 1px black solid;">{{ intruder.intruder_fio }}</td>
-            </tr>
-            {% elif key == 'Пострадавшие' or key == 'Свидетели' %}
-            {% else %}
-            <tr>
-                <td style="border: 1px black solid;"><b>{{ key }}</b></td>
-                <td style="border: 1px black solid;">{{ value }}</td>
-            </tr>
-            {% endif %}
-            {% endfor %}
-        </table>
-        <h1>Нарушитель</h1>
-        <table style="width: 50%">
-            {% for key, value in intruder %}
-            {% if key == 'id' or key == 'ФИО нарушителя' %}
-            {% else %}
-            <tr>
-                <td style="border: 1px black solid;"><b>{{ key }}</b></td>
-                <td style="border: 1px black solid;">{{ value }}</td>
-            </tr>
-            {% endif %}
-            {% endfor %}
-        </table>
-    </div>
-    <div class="injured">
-        <h1>Потерпевшие</h1>
-        {% if not injureds %}
-            <h3 style="color: grey">Нет данных</h3>
-        {% else %}
-            {% for i in injureds %}
+    <div class="main-content">
+        <div class="right-position">
+            <a id="dwn-html" href="">Скачать HTML</a>
+            <br>
+            <a id="dwn-word" href="">Скачать Word</a>
+        </div>
+        <div class="table-view">
+            <h1>Событие</h1>
             <table style="width: 50%">
-                {% for key, value in i %}
-                    <tr>
-                        <td style="border: 1px black solid;"><b>{{ key }}</b></td>
-                        <td style="border: 1px black solid;">{{ value }}</td>
-                    </tr>
+                {% for key, value in event %}
+                <tr>
+                    <td style="border: 1px black solid;"><b>{{ key }}</b></td>
+                    <td style="border: 1px black solid;">{{ value }}</td>
+                </tr>
                 {% endfor %}
             </table>
-            {% endfor %}
-        {% endif %}
-    </div>
-    <div class="witness">
-        <h1>Свидетели</h1>
-        {% if not witnesses %}
-            <h3 style="color: grey">Нет данных</h3>
-        {% else %}
-            {% for i in witnesses %}
-                <table style="width: 50%">
-                    {% for key, value in i %}
-                        <tr>
-                            <td style="border: 1px black solid;"><b>{{ key }}</b></td>
-                            <td style="border: 1px black solid;">{{ value }}</td>
-                        </tr>
+            <div class="intruders">
+                <h1>Нарушители</h1>
+                {% if not intruders %}
+                    <h3 style="color: grey">Нет данных</h3>
+                {% else %}
+                    {% for i in intruders %}
+                    <table style="width: 50%">
+                        {% for key, value in i %}
+                        {% if key == 'Потерпевший' or key == 'Нарушитель' or key == 'Свидетель' or key == 'add at' %}
+                        {% else %}
+                            {% if key == 'ФИО нарушителя' %}
+                                <td style="border: 1px black solid;"><b>{{ key }}</b></td>
+                                <td style="border: 1px black solid;"><a href="{% url 'person' i.id %}">{{ value }}</a></td>
+                            {% else %}
+                                <tr>
+                                    <td style="border: 1px black solid;"><b>{{ key }}</b></td>
+                                    <td style="border: 1px black solid;">{{ value }}</td>
+                                </tr>
+                            {% endif %}
+                        {% endif %}
+                        {% endfor %}
+                    </table>
                     {% endfor %}
-                </table>
-            {% endfor %}
-        {% endif %}
+                {% endif %}
+            </div>
+            <div class="injured">
+                <h1>Потерпевшие</h1>
+                {% if not witnesses %}
+                    <h3 style="color: grey">Нет данных</h3>
+                {% else %}
+                    {% for i in witnesses %}
+                    <table style="width: 50%">
+                        {% for key, value in i %}
+                        {% if key == 'Потерпевший' or key == 'Нарушитель' or key == 'Свидетель' or key == 'add at' %}
+                        {% else %}
+                            {% if key == 'ФИО нарушителя' %}
+                                <td style="border: 1px black solid;"><b>{{ key }}</b></td>
+                                <td style="border: 1px black solid;"><a href="{% url 'person' i.id %}">{{ value }}</a></td>
+                            {% else %}
+                                <tr>
+                                    <td style="border: 1px black solid;"><b>{{ key }}</b></td>
+                                    <td style="border: 1px black solid;">{{ value }}</td>
+                                </tr>
+                            {% endif %}
+                        {% endif %}
+                        {% endfor %}
+                    </table>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            <div class="witness">
+                <h1>Свидетели</h1>
+                {% if not injureds %}
+                    <h3 style="color: grey">Нет данных</h3>
+                {% else %}
+                    {% for i in injureds %}
+                        <table style="width: 50%">
+                            {% for key, value in i %}
+                            {% if key == 'Потерпевший' or key == 'Нарушитель' or key == 'Свидетель' or key == 'add at' %}
+                            {% else %}
+                                {% if key == 'ФИО нарушителя' %}
+                                    <td style="border: 1px black solid;"><b>{{ key }}</b></td>
+                                    <td style="border: 1px black solid;"><a href="{% url 'person' i.id %}">{{ value }}</a></td>
+                                {% else %}
+                                    <tr>
+                                        <td style="border: 1px black solid;"><b>{{ key }}</b></td>
+                                        <td style="border: 1px black solid;">{{ value }}</td>
+                                    </tr>
+                                {% endif %}
+                            {% endif %}
+                            {% endfor %}
+                        </table>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
     </div>
+    
+    
 
 {% endblock %}

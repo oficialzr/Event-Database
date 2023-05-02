@@ -1,11 +1,39 @@
-// const eventBtn = document.querySelector('#add-event')
-// eventBtn.addEventListener('click', clickEventButton)
+(function () {
+
+const listView = document.getElementById('view')
+listView.addEventListener('click', openViewList)
+
+function openViewList() {
+    const list = document.getElementById('list-values')
+    if (list.style.display === 'block') {
+        list.style.display = 'none'
+    } else {
+        list.style.display = 'block'
+    }
+}
+
+const listViewEdit = document.getElementById('view-edit')
+listViewEdit.addEventListener('click', openViewListEdit)
+
+function openViewListEdit() {
+    const list = document.getElementById('list-values-edit')
+    if (list.style.display === 'block') {
+        list.style.display = 'none'
+    } else {
+        list.style.display = 'block'
+    }
+}
+
+const id = makeid(30)
 
 
-// function clickEventButton() {
-//     window.location.replace('127.0.0.1:8000/add-event/')
-// }
 
-// var form = document.getElementById("event-form");
-// function handleForm(event) { event.preventDefault(); } 
-// form.addEventListener('submit', handleForm);
+
+const logoLink = document.querySelector('#logoLink')
+logoLink.addEventListener('click', goToMainMenu)
+
+function goToMainMenu() {
+    window.location.replace('/')
+}
+
+});
