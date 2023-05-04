@@ -23,6 +23,13 @@
                         {% elif obj.label == 'Дата проишествия (Формат даты: YYYY-MM-DD)' %}
                             {{ obj.label }}
                             <input type="date" name="date_incedent" required="" id="id_birthday" value="2001-01-01">
+                        {% elif obj.label == 'Пол (м/ж)' %}
+                            {{ obj.label }}
+                            <select style="height: 2em; font-size: 16px;" name="sex" id="sex">
+                                <option value="м">м</option>
+                                <option value="ж">ж</option>
+                            </select>
+                            <br>
                         {% else %}
                             {{ obj.label }}
                             {{ obj }}

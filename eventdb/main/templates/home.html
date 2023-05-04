@@ -10,14 +10,13 @@
 
     <div class="main-content">
         <div class="header-main">
-            <div>
-                {% if name == 'Лица' %}
-                <a href="{% url 'add-person' %}" id="add-event">Добавить лицо</a>
-                {% elif event %}
-                <a href="{% url 'add-event' %}" id="add-event">Добавить событие</a>
-                {% endif %}
-            </div>
+            {% if name == 'Лица' %}
+            <a href="{% url 'add-person' %}" id="add-event">Добавить лицо</a>
+            {% elif event %}
+            <a href="{% url 'add-event' %}" id="add-event">Добавить событие</a>
+            {% endif %}
             <div class="sort-search">
+                <a id="filter-button">Фильтры</a>
                 <a>Сортировка:</a>
                 {% if person_num %}
                     <select name="sort" id="sortId">
@@ -37,16 +36,78 @@
                     </select>
                 {% endif %}
                 <div class="search">
-                    <input type="search">
-                    <a href=""><span class="material-symbols-outlined">search</span></a>
+                    <input type="search" id="search-input">
+                    <a id="search-button"><span class="material-symbols-outlined">search</span></a>
                 </div>
             </div>
         </div>
+        <div class="filter" id="filter">
+            <div class="filter-content">
+                {% if event %}
+                <div>
+                    Вид события
+                    <select name="filterOption" id="typeFilter">
+                        <option value="">Нет</option>
+                        {% for i in types %}
+                            <option value="{{ i }}">{{ i }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    Дивизион
+                    <select name="filterOption" id="divisionFilter">
+                        <option value="">Нет</option>
+                        <option value="Мытищи">Мытищи</option>
+                    </select>
+                </div>
+                <div>
+                    Филиал
+                    <select name="filterOption" id="filialFilter">
+                        <option value="">Нет</option>
+                        <option value="Мытищи">Мытищи</option>
+                    </select>
+                </div>
+                {% else %}
+                    <div>
+                        Пол
+                        <select name="filterOption" id="sexFilter">
+                            <option value="Нет">Нет</option>
+                            <option value="м">м</option>
+                            <option value="ж">ж</option>
+                            
+                        </select>
+                    </div>
+                    <div>
+                        Страна
+                        <select name="filterOption" id="countryFilter">
+                            <option value="">Нет</option>
+                            {% for i in countries %}
+                                <option value="{{ i }}">{{ i }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        Область
+                        <select name="filterOption" id="regionFilter">
+                            <option value="">Нет</option>
+                            {% for i in regions  %}
+                                <option value="{{ i }}">{{ i }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="filter-btns">
+                <a class="filter-button-action" id="filter-accept">Применить фильтры</a>
+                <a class="filter-button-action" id="filter-delete">Очистить фильтры</a>
+            </div>
+        </div>
         <table class="table-main" id="tableMain">
-            <h1 class="header-page">{{ name }}</h1>
+            <h1 id="head" class="header-page">{{ name }}</h1>
+            <h3>Найдено записей: <a id="counter"></a></h3>
             {% if person_num %}
-                <tr>
-                    <th>Добавлено/Обновлено</th>
+                <tr class="header-table">
+                    <th hidden>Добавлено/Обновлено</th>
                     <th id="id"><b>№ {{ name_number }}</b></th>
                     <th id=""><b>Фамилия</b></th>
                     <th id=""><b>Имя</b></th>
@@ -57,7 +118,7 @@
                 <tbody id="tbodyTable">
                     {% for line in person %}
                         <tr>
-                            <td>{{ line.add_at|date:'Y-m-d' }}</td>
+                            <td hidden>{{ line.add_at|date:'Y-m-d' }}</td>
                             <td id="id">{{ line.id }}</td>
                             <td>{{ line.last_name }}</td>
                             <td>{{ line.first_name }}</td>
@@ -69,29 +130,37 @@
                                     <a id="edit" href="">Редактировать<span class="material-symbols-outlined">edit</span></a>
                                 </div>
                             </td>
+                            <td id="sex" hidden>{{ line.sex }}</td>
+                            <td id="country" hidden>{{ line.country }}</td>
+                            <td id="region" hidden>{{ line.region }}</td>
+                            <td id="fio" hidden>{{ line.intruder_fio }}</td>
+                            {% if author.username == line.who_added %}
+                                <td id="who_added">{{ line.who_added }}</td>
+                            {% endif %}
+
                         </tr>
                     {% endfor %}
                 </tbody>
                 
             {% else %}
-                <tr>
-                    <th>Дата изменения</th>
+                <tr class="header-table">
+                    <th hidden>Дата изменения</th>
                     <th id="id">№ {{ name_number }}</th>
                     <th id="date">Дата события</th>
                     <th id="type">Вид события</th>
-                    <th>Дивизион</th>
-                    <th>Филиал</th>
+                    <th id="division">Дивизион</th>
+                    <th id="filial">Филиал</th>
                     <th id="empty-col">Действия</th>
                 </tr>
                 <tbody id="tbodyTable">
                     {% for line in violations %}
                     <tr>
-                        <td> {{ line.change_date|date:'Y-m-d' }} </td>
+                        <td hidden> {{ line.change_date|date:'Y-m-d' }} </td>
                         <td id="id">{{ line.id }}</td>
                         <td id="date">{{ line.date_incedent }}</td>
                         <td id="type">{{ line.type }}</td>
-                        <td>{{ line.division }}</td>
-                        <td>{{ line.filial }}</td>
+                        <td id="division">{{ line.division }}</td>
+                        <td id="filial">{{ line.filial }}</td>
                         <td id="empty-col">
                             <div>
                                 <a href="{% url 'event' line.id %}">Открыть<span class="material-symbols-outlined">open_in_new</span></a>

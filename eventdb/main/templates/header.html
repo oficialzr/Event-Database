@@ -8,6 +8,7 @@
                 <p>АИС "База данных событий"</p>
             </div>
         </div>
+        {% if user.is_authenticated %}
         <ul>
             <li><a style="font-weight: 800;">Админ-панель</a></li>
             <li>
@@ -38,8 +39,15 @@
 
                 </ul>
             </li>
-            <li><a>Выйти</a></li>
+            <li><a href="/logout">Выйти</a></li>
         </ul>
+        {% endif %}
         
     </div>
 </div>
+
+{% block underscripts %}
+    {% if user.is_authenticated %}
+        <script src="{% static 'js/index.js' %}"></script>
+    {% endif %}
+{% endblock %}

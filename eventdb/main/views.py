@@ -1,67 +1,89 @@
 import datetime
 import json
 
-from django.shortcuts import render, redirect, HttpResponseRedirect, HttpResponse
-from django.urls import reverse_lazy
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import authenticate, login, logout
 from django.http import JsonResponse
-from django.core import serializers
 
 from .models import Violations, Person, RelatedPerson
 from .forms import PeopleForm, EventForm
 
 # Views for view data
 
+
+# login/logout
+
+
+def loginView(request):
+    print(request.POST)
+    warning = None
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+        user = authenticate(username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return JsonResponse(data={'status': 200})
+        else:
+            warning = 'Введен неправильный логин или пароль!'
+            return JsonResponse(data={'status': 500, 'warning': warning})
+    return render(request, 'login.html')
+
+def logoutView(request):
+    logout(request)
+    return redirect('/login')
+
+
+# main
+
+@login_required
 def startPage(request):
     return render(request, 'main-page.html')
 
+@login_required
 def eventsView(request):
     violations = Violations.objects.order_by('-id')
     name = 'События'
     name_number = 'События'
-    return render(request, 'home.html', {'violations': violations, 'name': name, 'name_number': name_number, 'event': 1})
 
+    types = set(i[j] for i in violations.values('type') for j in i)
+
+    return render(request, 'home.html', {'violations': violations, 'name': name, 'name_number': name_number, 'event': 1, 'types': types})
+
+@login_required
 def personsView(request, role=None):
-    db_filter='-id'
-
-    filters = {
-        'byDateUp': 'add_at',
-        'byDateDown': '-add_at',
-        'byNameUp': 'last_name',
-        'byNameDown': '-last_name'
-    }
-
-    if request.method == 'POST':
-        filter = request.POST['sortBy']
-        if filter:
-            try:
-                db_filter = filters[filter]
-            except:
-                db_filter = '-id'
-
-    
-    
     if role == 'intruders':
-        person = Person.objects.filter(intruder=True).order_by(db_filter)
+        person = Person.objects.filter(intruder=True)
         name_number = 'Нарушителя'
         name = 'Нарушители'
     elif role == 'witnesses':
-        person = Person.objects.filter(witness=True).order_by(db_filter)
+        person = Person.objects.filter(witness=True)
         name_number = 'Свидетеля'
         name = 'Свидетели'
     elif role == 'injureds':
-        person = Person.objects.filter(injured=True).order_by(db_filter)
+        person = Person.objects.filter(injured=True)
         name_number = 'Потерпевшего'
         name = 'Потерпевшие'
     else:
-        person = Person.objects.order_by(db_filter)
+        person = Person.objects.all().order_by('-id')
         name_number = 'Лица'
         name = 'Лица'
 
-    return render(request, 'home.html', {'person': person, 'name_number': name_number, 'name': name, 'person_num': 1})
+    countries = set(i[j] for i in person.values('country') for j in i)
+    regions = set(i[j] for i in person.values('region') for j in i)
+    return render(request, 'home.html', {'person': person, 
+                                         'name_number': name_number, 
+                                         'name': name, 
+                                         'person_num': 1,
+                                         'countries': countries,
+                                         'regions': regions,
+                                         'author': request.user})
 
 
 # Views for add data
 
+@login_required
 def addEvent(request):
     header = 'Заполните данные о событии'
     if request.method == 'POST':
@@ -89,7 +111,7 @@ def addEvent(request):
         form_person = PeopleForm()
     return render(request, 'add.html', {'form': form, 'form_person': form_person, 'header': header, 'events': 1})
 
-
+@login_required
 def addPersonSolo(request):
     header = 'Заполните данные о человеке'
     if request.method == 'POST':
@@ -129,6 +151,7 @@ def addPersonSolo(request):
 
 # /search/?adress=
 
+@login_required
 def searchPerson(request):
     intruder = request.GET.get('term')
     intruders = []
@@ -142,7 +165,7 @@ def searchPerson(request):
 
 # Views for view persons
 
-
+@login_required
 def eventView(request, event_id):
     event = Violations.objects.get(id=event_id)
     persons = RelatedPerson.objects.filter(id_event=event_id)
@@ -152,6 +175,7 @@ def eventView(request, event_id):
     
     return render(request, 'event.html', {'event': event, 'persons': persons, 'intruders': intruders, 'injureds': injureds, 'witnesses': witnesses})
 
+@login_required
 def personView(request, person_id):
     person = Person.objects.get(id=person_id)
     events = RelatedPerson.objects.filter(id_person=person_id)
@@ -160,6 +184,7 @@ def personView(request, person_id):
 
 # add/delete/check person
 
+@login_required
 def get_request(request, id):
     data = request.POST
     try: 
@@ -178,6 +203,7 @@ def get_request(request, id):
         return JsonResponse({'warning': warning})
     return JsonResponse({'data': data, 'message': fio + ' | ' + birthday, 'warning': warning}, json_dumps_params={'ensure_ascii': False}, content_type='application/json; charset=utf-8')
 
+@login_required
 def check_person(request, id):
     person = request.POST['person']
     try:
@@ -188,6 +214,7 @@ def check_person(request, id):
         print(e)
         return JsonResponse({'warning': 'Такого человека не существует!'}, json_dumps_params={'ensure_ascii': False}, content_type='application/json; charset=utf-8')
 
+@login_required
 def newPeople(data, role):
     form = PeopleForm(data)
     if form.is_valid():
@@ -223,7 +250,7 @@ def newPeople(data, role):
         person.save()
         return False
     
-
+@login_required
 def delete_person(request, id):
     fio, birthday = request.POST['person'].split(' | ')
     try:
@@ -236,7 +263,7 @@ def delete_person(request, id):
         return False
     return JsonResponse(data=fio, safe=False, json_dumps_params={'ensure_ascii': False}, content_type='application/json; charset=utf-8')
 
-
+@login_required
 def createRelations(request, event_id):
     event_id = int(request.POST['event_id'])
     if 'intruders' in request.POST:
@@ -253,7 +280,7 @@ def createRelations(request, event_id):
             add_relation(value, 3, event_id)
     return JsonResponse(data={'status': 200})
 
-
+@login_required
 def add_relation(name, role, event_id):
     fio, birthday = name.split(' | ')
     try:
@@ -278,6 +305,7 @@ def add_relation(name, role, event_id):
 
 # tests
 
+@login_required
 def testJson(request, event_id):
     person_data = {'name': 'Alex', 'date': '10-02-2002'}
     data = request.GET.dict()

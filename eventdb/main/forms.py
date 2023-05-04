@@ -7,7 +7,7 @@ class IntruderForm(forms.Form):
     second_name = forms.CharField(max_length=30, label='Отчество', required=False)
     description = forms.CharField(label='Описание нарушителя (Обязательное поле)', widget=forms.Textarea)
     sex = forms.CharField(max_length=1, label='Пол (м/ж)', required=False)
-    birthday = forms.DateField(label='День рождения (Формат даты: YYYY-MM-DD)', required=False)
+    birthday = forms.DateField(label='Дата рождения (Формат даты: YYYY-MM-DD)', required=False)
     with_companion = forms.CharField(label='В компании с:', required=False)
     adress_type = forms.CharField(label='Тип адреса', required=False)
     country = forms.CharField(label='Страна', required=False)

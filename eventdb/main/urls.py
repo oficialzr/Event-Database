@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import path
 
 from .views import addEvent, eventView
-from .views import startPage
+from .views import startPage, loginView, logoutView
 from .views import personsView, eventsView
 from .views import personView
 from .views import addPersonSolo
@@ -13,6 +13,9 @@ from .views import get_request, delete_person, check_person, createRelations
 
 urlpatterns = [
     path('', startPage, name='home'),
+    path('login/', loginView, name='login'),
+    path('logout/', logoutView, name='login'),
+
 
     path('events/', eventsView, name='events'),
     path('persons/', personsView, name='persons'),
