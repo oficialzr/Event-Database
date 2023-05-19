@@ -1,0 +1,42 @@
+{% extends 'index.html' %}
+
+{% load static %}
+
+{% block content %}
+
+    <div style="display: flex; flex-direction: column; align-items: center; padding-top: 50px;">
+        <h1>Просмотр изменений</h1>
+        <div class="change-page">
+            <div class="change-data" id="from">
+                <h1>Было</h1><br><hr>
+                {% for i, j in change_from %}
+                    {% if i == 'id' or i == 'date_incedent' or i == 'author' or i == 'division' or i == 'filial' or i == 'representation' or i == 'entity' %}
+                    {% else %}
+                    <h3>{{i}}</h3>
+                    <p>{{j}}</p>
+                    <hr>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            <div style="width: 0px; border-left: 1px solid grey;">
+
+            </div>
+            <div class="change-data" id="to">
+                <h1>Стало</h1><br><hr>
+                {% for i, j in change_to %}
+                    {% if i == 'id' or i == 'date_incedent' or i == 'author' or i == 'division' or i == 'filial' or i == 'representation' or i == 'entity' %}
+                    {% else %}
+                    <h3>{{i}}</h3>
+                    <p>{{j}}</p>
+                    <hr>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+{% endblock %}
+
+{% block underscripts %}
+    <script src="{% static 'js/check-changes.js' %}"></script>
+{% endblock %}

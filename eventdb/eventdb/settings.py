@@ -106,6 +106,8 @@ LANGUAGE_CODE = 'ru-RU'
 
 DATE_FORMAT = 'd.m.Y'
 
+DATETIME_FORMAT = 'd.m.Y P'
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
@@ -127,3 +129,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 LOGIN_URL = '/login'
+

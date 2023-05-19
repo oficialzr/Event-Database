@@ -3,21 +3,24 @@
 {% load static %}
 
 {% block content %}
-    <form id="event-form" method="post" action="">
-        <h1>Редактирование {{ header }}</h1>
-        {% csrf_token %}
-        {% for obj in form %}
-            {{ i = obj.name }}
-            {% if obj.label == 'ФИО нарушителя' %}
-                {{ obj.label }}
-                <input id="autoComplete" type="text" name="intruder" required="" id="id_intruder">
-            {% else %}
-                {{ obj.label }}
-                {{ person.i }}
-            {% endif %}
-        {% endfor %}
-        <button name="submit" type="submit">Подтвердить данные</button>
-
-    </form>
-
+    <div class="main-content main-content-form">
+        <form id="edit-form" method="post" action="">
+            <h1>Редактирование {{ header }}</h1>
+            {% csrf_token %}
+            {% for obj in form %}
+                    {{ obj.label }}
+                    {{ obj }}
+            {% endfor %}
+            <button id="accept-edit" class="accept-btn" name="submit" type="submit">Подтвердить данные</button>
+        </form>
+    </div>
 {% endblock %}
+
+{% block underscripts %}
+    {% if person %}
+        <script src="{% static 'js/edit-person.js' %}"></script>
+    {% else %}
+        <script src="{% static 'js/edit-event.js' %}"></script>
+    {% endif %}
+{% endblock %}
+

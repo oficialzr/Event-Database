@@ -1,0 +1,54 @@
+{% extends 'index.html' %}
+
+{% load static %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+{% endblock %}
+
+{% block content %}
+    {% if is_edit %}
+        <h1 style="text-align: center; font-size: 40px; padding-top: 50px; margin: 0;">Изменение записи</h1>
+    {% else %}
+        <h1 style="text-align: center; font-size: 40px; padding-top: 50px; margin: 0;">Создание записи</h1>
+    {% endif %}
+    <div class="main-content main-content-form">
+        <form class="event-form" id="event" method="post" action="">
+            {% if is_edit %}
+                <span hidden id="is_edit"></span>
+                <span hidden id="sex_from_form">{{ form.sex }}</span>
+            {% endif %}
+            <div class="form-add-event">
+                <div class="main-info">
+                    <h1>{{ header }}</h1>
+                    {% csrf_token %}
+                    
+                    {% for obj in form %}
+                        {% if obj.label == 'Дата проишествия (Формат даты: YYYY-MM-DD HH:MM)' %}
+                            {{ obj.label }}
+                            <input type="datetime-local" name="date_incedent" required="" id="id_date_incedent" value="">
+                        {% else %}
+                            {{ obj.label }}
+                            {{ obj }}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <button id="main-form-submit" name="submit" type="submit">Подтвердить данные</button>
+        </form>
+    </div>
+    
+{% endblock %}
+
+{% block underscripts %}
+
+{% if events %}
+<script src="{% static 'js/forms.js' %}"></script>
+{% endif %}
+
+{% if solo %}
+<script src="{% static 'js/add-person-solo.js' %}"></script>
+{% endif %}
+
+{% endblock %}

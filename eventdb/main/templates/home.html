@@ -2,6 +2,16 @@
 
 {% load static %}
 
+{% block title %}
+
+    {% if person %}
+    <title>ED - Лица</title>
+    {% else %}
+    <title>ED - События</title>
+    {% endif %}
+
+{% endblock %}
+
 {% block stylesheets %}
 <link rel="stylesheet" href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
 {% endblock %}
@@ -11,9 +21,9 @@
     <div class="main-content">
         <div class="header-main">
             {% if name == 'Лица' %}
-            <a href="{% url 'add-person' %}" id="add-event">Добавить лицо</a>
+            <a href="{% url 'add-person' %}" class="tbm-border" id="add-event">Добавить лицо</a>
             {% elif event %}
-            <a href="{% url 'add-event' %}" id="add-event">Добавить событие</a>
+            <a href="{% url 'add-event' %}" class="tbm-border" id="add-event">Добавить событие</a>
             {% endif %}
             <div class="sort-search">
                 <a id="filter-button">Фильтры</a>
@@ -36,70 +46,54 @@
                     </select>
                 {% endif %}
                 <div class="search">
-                    <input type="search" id="search-input">
-                    <a id="search-button"><span class="material-symbols-outlined">search</span></a>
+                    <form class="filter-form" action="" method="get">
+                        {% for i in form %}
+                        {% if i.label == 'search' %}
+                        {{i}}
+                        {% endif %}
+                        {% endfor %}
+                        {% if person %}
+                        <button type="submit" name="submit-btn" id="search-button-person"><span class="material-symbols-outlined">search</span></button>
+                        {% else %}
+                        <button type="submit" name="submit-btn" id="search-button-event"><span class="material-symbols-outlined">search</span></button>
+                        {% endif %}
+                        <button type="submit" id="delete-search" class="material-symbols-outlined">close</button>
                 </div>
             </div>
         </div>
         <div class="filter" id="filter">
             <div class="filter-content">
                 {% if event %}
-                <div>
-                    Вид события
-                    <select name="filterOption" id="typeFilter">
-                        <option value="">Нет</option>
-                        {% for i in types %}
-                            <option value="{{ i }}">{{ i }}</option>
+                        {% for i in form %}
+                        {% if i.label == 'search' %}
+                        {% else %}
+                            <div>
+                                {{ i.label }}
+                                {{ i }}
+                            </div>
+                        {% endif %}
                         {% endfor %}
-                    </select>
-                </div>
-                <div>
-                    Дивизион
-                    <select name="filterOption" id="divisionFilter">
-                        <option value="">Нет</option>
-                        <option value="Мытищи">Мытищи</option>
-                    </select>
-                </div>
-                <div>
-                    Филиал
-                    <select name="filterOption" id="filialFilter">
-                        <option value="">Нет</option>
-                        <option value="Мытищи">Мытищи</option>
-                    </select>
-                </div>
+                        <div class="filter-btns">
+                            <button class="filter-button-action tbm-border" id="filter-accept">Применить фильтры</button>
+                            <button class="filter-button-action tbm-border" id="filter-delete">Очистить фильтры</button>
+                        </div>
+                    </form>
                 {% else %}
-                    <div>
-                        Пол
-                        <select name="filterOption" id="sexFilter">
-                            <option value="Нет">Нет</option>
-                            <option value="м">м</option>
-                            <option value="ж">ж</option>
-                            
-                        </select>
-                    </div>
-                    <div>
-                        Страна
-                        <select name="filterOption" id="countryFilter">
-                            <option value="">Нет</option>
-                            {% for i in countries %}
-                                <option value="{{ i }}">{{ i }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div>
-                        Область
-                        <select name="filterOption" id="regionFilter">
-                            <option value="">Нет</option>
-                            {% for i in regions  %}
-                                <option value="{{ i }}">{{ i }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
+                    {% for i in form %}
+                    {% if i.label == 'search' %}
+                    {% else %}
+                        <div>
+                            {{ i.label }}
+                            {{ i }}
+                        </div>
+                    {% endif %}
+                    {% endfor %}
+                        <div class="filter-btns">
+                            <button class="filter-button-action tbm-border" id="filter-accept">Применить фильтры</button>
+                            <button class="filter-button-action tbm-border" id="filter-delete">Очистить фильтры</button>
+                        </div>
+                    </form>
                 {% endif %}
-            </div>
-            <div class="filter-btns">
-                <a class="filter-button-action" id="filter-accept">Применить фильтры</a>
-                <a class="filter-button-action" id="filter-delete">Очистить фильтры</a>
             </div>
         </div>
         <table class="table-main" id="tableMain">
@@ -127,21 +121,14 @@
                             <td id="empty-col">
                                 <div>
                                     <a href="{% url 'person' line.id %}">Открыть<span class="material-symbols-outlined">open_in_new</span></a>
-                                    <a id="edit" href="">Редактировать<span class="material-symbols-outlined">edit</span></a>
                                 </div>
                             </td>
                             <td id="sex" hidden>{{ line.sex }}</td>
-                            <td id="country" hidden>{{ line.country }}</td>
-                            <td id="region" hidden>{{ line.region }}</td>
-                            <td id="fio" hidden>{{ line.intruder_fio }}</td>
-                            {% if author.username == line.who_added %}
-                                <td id="who_added">{{ line.who_added }}</td>
-                            {% endif %}
+                            <td id="fio" hidden>{{ line.fio }}</td>
 
                         </tr>
                     {% endfor %}
                 </tbody>
-                
             {% else %}
                 <tr class="header-table">
                     <th hidden>Дата изменения</th>
@@ -153,8 +140,9 @@
                     <th id="empty-col">Действия</th>
                 </tr>
                 <tbody id="tbodyTable">
-                    {% for line in violations %}
+                    {% for line in events %}
                     <tr>
+                        <td id="desc" hidden>{{ line.description }}</td>
                         <td hidden> {{ line.change_date|date:'Y-m-d' }} </td>
                         <td id="id">{{ line.id }}</td>
                         <td id="date">{{ line.date_incedent }}</td>
@@ -163,8 +151,7 @@
                         <td id="filial">{{ line.filial }}</td>
                         <td id="empty-col">
                             <div>
-                                <a href="{% url 'event' line.id %}">Открыть<span class="material-symbols-outlined">open_in_new</span></a>
-                                <a id="edit" href="">Редактировать<span class="material-symbols-outlined">edit</span></a>
+                                <a href="{% url 'event' line.id %}">Открыть<span class="material-symbols-outlined">open_in_new</span></a>                       
                             </div>
                         </td>
                     </tr>
@@ -172,6 +159,14 @@
                 </tbody>
             {% endif %}
         </table>
+        <div class="pagination">
+            <ul id="pagination-ul">
+                <li id="first">Первая</li>
+                <li id="previous">Предыдущая</li>
+                <li id="next">Следующая</li>
+                <li id="last">Последняя</li>
+            </ul>
+        </div>
     </div>
 
 {% endblock %}
@@ -182,5 +177,6 @@
 <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
 <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
 <script src="{% static 'js/tools/sorting.js' %}"></script>
+
 
 {% endblock %}

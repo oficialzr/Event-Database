@@ -1,14 +1,17 @@
 from django.contrib import admin
 from django.urls import path
+from django.conf.urls.static import static
 
-from .views import addEvent, eventView
+from django.conf import settings
+
+from .views import addEvent
 from .views import startPage, loginView, logoutView
 from .views import personsView, eventsView
-from .views import personView
-from .views import addPersonSolo
-from .views import searchPerson
+from .views import personView, eventView, changeView
+from .views import addPerson, addAdress
+from .views import searchPerson, add_person_with_redirect
 
-from .views import get_request, delete_person, check_person, createRelations
+from .views import add_person_on_event, edit_person, edit_event
 
 
 urlpatterns = [
@@ -19,20 +22,20 @@ urlpatterns = [
 
     path('events/', eventsView, name='events'),
     path('persons/', personsView, name='persons'),
-    path('injureds/', personsView, {'role': 'injureds'}, name='injureds'),
-    path('witnesses/', personsView, {'role': 'witnesses'}, name='witnesses'),
-    path('intruders/', personsView, {'role': 'intruders'}, name='intruders'),
 
-    path('add-person/', addPersonSolo, name='add-person'),
+    path('add-person/', addPerson, name='add-person'),
     path('add-event/', addEvent, name='add-event'),
-    path('create-relations/<slug:event_id>', createRelations, name='create-relations'),
+    path('add-adress/<int:person_id>', addAdress, name='add-adress'),
 
     path('event/<int:event_id>', eventView, name='event'),
     path('person/<int:person_id>', personView, name='person'),
+    path('change/<int:change_id>', changeView, name='change'),
 
     path('search/', searchPerson),
 
-    path('add-person-on-event/<slug:id>', get_request),
-    path('delete-person/<slug:id>', delete_person),
-    path('check-person/<slug:id>', check_person),
-]
+    path('add-person-on-event/<slug:id>', add_person_on_event, name='add-person-on-event'),
+    path('add-person-redirect/', add_person_with_redirect, name='add-person-redicrect'),
+
+    path('edit-person/<int:id_person>', edit_person, name='edit-person'),
+    path('edit-event/<int:id_event>', edit_event, name='edit-event'),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

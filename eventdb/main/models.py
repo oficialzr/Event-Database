@@ -1,14 +1,32 @@
 from django.db import models
-import django
+# from django.forms import ModelForm
+from django import utils
+from datetime import datetime
+
+from django.shortcuts import get_object_or_404
+
+from django.contrib.auth.models import User
 
 
-class Violations(models.Model):
+def get_upload_path(instance, filename):
+    return "persons_files/images/{0}/{1}".format(instance.fio, filename)
+
+def get_upload_path_file(instance, filename):
+    person = get_object_or_404(Person, id=instance.person_id)
+    return "persons_files/files/{0}/{1}".format(person.fio, filename)
+
+def get_upload_path_file_event(instance, filename):
+    event = get_object_or_404(Event, id=instance.event_id)
+    return "event_files/files/{0}/{1}".format(event.id, filename)
+
+
+class Event(models.Model):
     id = models.AutoField(primary_key=True, verbose_name='№ п.п.')
-    date_incedent = models.DateField(verbose_name='Дата проишествия')
+    date_incedent = models.DateTimeField(verbose_name='Дата проишествия')
 
     author = models.CharField(max_length=100, verbose_name='ФИО автора')
 
-    change_date = models.DateField(auto_now_add=True, verbose_name='Дата изменения')
+    change_date = models.DateTimeField(auto_now=True, verbose_name='Дата изменения')
     division = models.CharField(max_length=100, verbose_name='Дивизион')
     filial = models.CharField(max_length=200, verbose_name='Филиал')
     representation = models.CharField(verbose_name='Представительство')
@@ -22,60 +40,95 @@ class Violations(models.Model):
     object = models.CharField(max_length=150, verbose_name='Предмет посягательства')
     place = models.CharField(max_length=300, verbose_name='Место')
 
-    # intruder = models.ForeignKey(Intruder, on_delete=models.CASCADE, verbose_name='ФИО нарушителя', null=True, to_field='id')
-    # injureds = models.CharField(max_length=300, verbose_name='Пострадавшие', null=True, blank=True)
-    # witnesses = models.CharField(max_length=300, verbose_name='Свидетели', null=True, blank=True)
-
     class Meta:
-        verbose_name = 'Проишествие'
-        verbose_name_plural = 'Проишествия'
+        verbose_name = 'Событие'
+        verbose_name_plural = 'СОБЫТИЯ: События'
         
     def __iter__(self):
         for field in self._meta.fields:
-             yield (field.verbose_name,  field.value_to_string(self))
+            if field.verbose_name == 'Дата проишествия':
+                yield (field.verbose_name, datetime.strftime(datetime.strptime(field.value_to_string(self), '%Y-%m-%dT%H:%M:%S'), '%d.%m.%Y %H:%M'))
+            elif field.verbose_name == 'Дата изменения':
+                yield (field.verbose_name, datetime.strftime(datetime.strptime(field.value_to_string(self), '%Y-%m-%dT%H:%M:%S.%f'), '%d.%m.%Y %H:%M'))
+            else:
+                yield (field.verbose_name,  field.value_to_string(self))
 
     def __str__(self):
 	    return 'ID события: ' + str(self.id) + ' | Дата: ' + str(self.date_incedent)
     
 class RelatedPerson(models.Model):
     id_event = models.IntegerField(verbose_name='Номер события')
-    #  id_type = models.IntegerField(verbose_name='Номер типа лица')
-    is_intruder = models.BooleanField(verbose_name='Нарушитель', default=False)
-    is_witness = models.BooleanField(verbose_name='Свидетель', default=False)
-    is_injured = models.BooleanField(verbose_name='Потерпевший', default=False)
+    role = models.CharField(verbose_name='Роль:')
+    role_desc = models.CharField(verbose_name='Кем является:', blank=True, null=True, default=None)
     id_person = models.IntegerField(verbose_name='ID лица')
 
     class Meta:
         verbose_name = 'Связанное лицо'
-        verbose_name_plural = 'Связанные лица'
+        verbose_name_plural = 'ЛИЦА: Связанные лица'
 
     def __iter__(self):
         for field in self._meta.fields:
              yield (field.verbose_name,  field.value_to_string(self))
 
     def __str__(self):
-        if self.is_intruder:
-            return 'ID события: ' + str(self.id_event) + ' | Роль: Нарушитель'
-        elif self.is_witness:
-            return 'ID события: ' + str(self.id_event) + ' | Роль: Свидетель'
-        elif self.is_witness and self.is_injured:
-            return 'ID события: ' + str(self.id_event) + ' | Роль: Потерпевший и свидетель'
-        else:
-            return 'ID события: ' + str(self.id_event) + ' | Роль: Потерпевший'
+        return 'ID события: ' + str(self.id_event) + ' | Роль: ' + self.role
+
 
 class Person(models.Model):
-    id = models.AutoField(primary_key=True, verbose_name='ID нарушителя')
-    add_at = models.DateTimeField(default=django.utils.timezone.now(), editable=False)
+    id = models.AutoField(primary_key=True, verbose_name='ID лица')
+    add_at = models.DateTimeField(default=utils.timezone.now, editable=False)
 
-    intruder_fio = models.CharField(max_length=100, verbose_name='ФИО нарушителя')
+    fio = models.CharField(max_length=100, verbose_name='ФИО')
     last_name = models.CharField(max_length=30, verbose_name='Фамилия', blank=True)
     first_name = models.CharField(max_length=30, verbose_name='Имя', blank=True)
     second_name = models.CharField(max_length=30, verbose_name='Отчество', blank=True)
-    description = models.TextField(verbose_name='Описание нарушителя', default='Нет описания (Нежелательное поведение)')
+    description = models.TextField(verbose_name='Описание лица', default='Нет описания (Нежелательное поведение)')
     sex = models.CharField(verbose_name='Пол', choices=(('м', 'М'), ('ж', 'Ж')))
     birthday = models.DateField(verbose_name='Дата рождения', null=True, blank=True)
-    # with_companion = models.CharField(verbose_name='В компании с:', blank=True)
-    # adress_type = models.CharField(verbose_name='Тип адреса', blank=True)
+
+    id_related = models.IntegerField(verbose_name='FK related', default=None, null=True)
+
+    author = models.CharField(verbose_name='Автор', default=None)  
+
+    person_image = models.ImageField(verbose_name='Фото лица', upload_to=get_upload_path, blank=True, null=True, default=None)
+    # file = models.File
+
+    class Meta:
+        verbose_name = 'Лицо'
+        verbose_name_plural = 'ЛИЦА: Лица'
+        
+    def __iter__(self):
+        for field in self._meta.fields:
+            yield (field.verbose_name,  field.value_to_string(self))
+
+    def __str__(self):
+  	    return self.fio + ' | ' + str(self.birthday)
+
+
+
+class AdressesPlacesOfBirth(models.Model):
+    id_place_of_birth = models.ForeignKey(Person, on_delete=models.CASCADE, to_field='id')
+    country = models.CharField(verbose_name='Страна', blank=True)
+    region = models.CharField(verbose_name='Область', blank=True)
+    adress = models.TextField(verbose_name='Адрес', blank=True)
+    who_added = models.CharField(verbose_name='Добавил:', blank=False, default='-')
+
+    class Meta:
+        verbose_name = 'Место рождения'
+        verbose_name_plural = 'АДРЕСА: Места рождения'
+        
+    def __iter__(self):
+        for field in self._meta.fields:
+             yield (field.verbose_name,  field.value_to_string(self))
+
+    def __str__(self):
+	    return 'ID места рождения: ' + str(self.id)
+
+class AdressesPlacesOfWork(models.Model):
+    id_place_of_work = models.ForeignKey(Person, on_delete=models.CASCADE, to_field='id')
+
+    entity = models.CharField(verbose_name='Юридическое лицо', blank=False, default='-')
+
     country = models.CharField(verbose_name='Страна', blank=True)
     region = models.CharField(verbose_name='Область', blank=True)
     area = models.CharField(verbose_name='Район', blank=True)
@@ -86,27 +139,148 @@ class Person(models.Model):
     apartment = models.CharField(verbose_name='Квартира', blank=True)
     who_added = models.CharField(verbose_name='Добавил:', blank=False, default='-')
 
-    injured = models.BooleanField(verbose_name='Потерпевший', default=False)
-    intruder = models.BooleanField(verbose_name='Нарушитель', default=False)
-    witness = models.BooleanField(verbose_name='Свидетель', default=False)
-
     class Meta:
-        verbose_name = 'Лицо'
-        verbose_name_plural = 'Лица'
+        verbose_name = 'Место работы'
+        verbose_name_plural = 'АДРЕСА: Места работы'
         
     def __iter__(self):
         for field in self._meta.fields:
              yield (field.verbose_name,  field.value_to_string(self))
 
     def __str__(self):
-	    return self.intruder_fio + ' | ' + str(self.birthday)
+	    return 'ID места работы: ' + str(self.id)
+
+class AdressesPlacesOfLive(models.Model):
+    id_place_of_live = models.ForeignKey(Person, on_delete=models.CASCADE, to_field='id')
+    country = models.CharField(verbose_name='Страна', blank=True)
+    region = models.CharField(verbose_name='Область', blank=True)
+    area = models.CharField(verbose_name='Район', blank=True)
+    locality = models.CharField(verbose_name='Населенный пункт', blank=True)
+    street = models.CharField(verbose_name='Улица', blank=True)
+    house = models.CharField(verbose_name='Дом', blank=True)
+    frame = models.CharField(verbose_name='Корпус', blank=True)
+    apartment = models.CharField(verbose_name='Квартира', blank=True)
+    who_added = models.CharField(verbose_name='Добавил:', blank=False, default='-')
+
+    class Meta:
+        verbose_name = 'Место регистрации'
+        verbose_name_plural = 'АДРЕСА: Места регистрации'
+        
+    def __iter__(self):
+        for field in self._meta.fields:
+             yield (field.verbose_name,  field.value_to_string(self))
+
+    def __str__(self):
+	    return 'ID места регистрации: ' + str(self.id)
+
+class OtherAdresses(models.Model):
+    id_other_places = models.ForeignKey(Person, on_delete=models.CASCADE, to_field='id')
+    description = models.TextField(verbose_name='Описание адреса', blank=True)
+    country = models.CharField(verbose_name='Страна', blank=True)
+    region = models.CharField(verbose_name='Область', blank=True)
+    area = models.CharField(verbose_name='Район', blank=True)
+    locality = models.CharField(verbose_name='Населенный пункт', blank=True)
+    street = models.CharField(verbose_name='Улица', blank=True)
+    house = models.CharField(verbose_name='Дом', blank=True)
+    frame = models.CharField(verbose_name='Корпус', blank=True)
+    apartment = models.CharField(verbose_name='Квартира', blank=True)
+    who_added = models.CharField(verbose_name='Добавил:', blank=False, default='-')
+
+    class Meta:
+        verbose_name = 'Остальной адрес'
+        verbose_name_plural = 'АДРЕСА: Остальные адреса'
+        
+    def __iter__(self):
+        for field in self._meta.fields:
+             yield (field.verbose_name,  field.value_to_string(self))
+
+    def __str__(self):
+	    return 'ID адреса: ' + str(self.id)
     
 
-class Filials(models.Model):
-    id = models.AutoField(primary_key=True)
-    name = models.CharField(unique=True)
+class Changes(models.Model):
+    id_user = models.IntegerField(verbose_name='Автор:')
+    
+    record_name = models.CharField(verbose_name='Тип записи:')
+    id_record = models.IntegerField(verbose_name='ID записи:')
+    time_change = models.DateTimeField(verbose_name='Изменено в:', auto_now_add=utils.timezone.now)
+    edit_from = models.CharField(verbose_name='Изменено с:', blank=True)
+    edit_to = models.CharField(verbose_name='Изменено на:', blank=True)
+    type_edit = models.CharField(verbose_name='Поле изменения:')
+
+    class Meta:
+        verbose_name = 'Изменение лица'
+        verbose_name_plural = 'ЛИЦА: Изменения лиц'
+        
+    def __iter__(self):
+        for field in self._meta.fields:
+            if field.verbose_name == 'Изменено в:':
+                yield (field.verbose_name, datetime.strftime(datetime.strptime(field.value_to_string(self), '%Y-%m-%dT%H:%M:%S.%f'), '%d.%m.%Y %H:%M'))
+            elif field.verbose_name  == 'Автор:':
+                user = User.objects.get(id=field.value_to_string(self))
+                yield (field.verbose_name,  user.first_name + ' ' + user.last_name)
+            elif field.verbose_name not in ('ID лица:', 'ID'):
+                yield (field.verbose_name,  field.value_to_string(self))
+            
+
+    def __str__(self):
+	    return 'ID изменения: ' + str(self.id)
+    
+
+class ChangesEvent(models.Model):
+    id_user = models.IntegerField(verbose_name='Автор:')
+    id_record = models.IntegerField(verbose_name='ID записи:')
+    record_name = models.CharField(verbose_name='Тип записи:')
+
+    time_change = models.DateTimeField(verbose_name='Изменено в:', auto_now_add=utils.timezone.now)
+    edit_from = models.TextField(verbose_name='Изменено с:', blank=True)
+    edit_to = models.TextField(verbose_name='Изменено на:', blank=True)
+
+    class Meta:
+        verbose_name = 'Изменение события'
+        verbose_name_plural = 'СОБЫТИЯ: Изменения событий'
+        
+    def __iter__(self):
+        for field in self._meta.fields:
+             yield (field.verbose_name,  field.value_to_string(self))
+
+    def __str__(self):
+        author = User.objects.get(id=self.id_user)
+        return 'Автор: ' + author.last_name + ' ' + author.first_name +  ' | ID события: ' + str(self.id_record) + ' | ID изменения: ' + str(self.id)
+    
 
 
-class Divisions(models.Model):
-    id = models.AutoField(primary_key=True)
-    name = models.CharField(unique=True)
+class FilesPerson(models.Model):
+    person_id = models.IntegerField(verbose_name='ID лица')
+    file = models.FileField(verbose_name='Файл', upload_to=get_upload_path_file)
+    filename = models.CharField(verbose_name='Название файла', default=None, blank=True, null=True)
+
+    class Meta:
+        verbose_name = 'Файл лица'
+        verbose_name_plural = 'ЛИЦА: Файлы лиц'
+        
+    def __iter__(self):
+        for field in self._meta.fields:
+             yield (field.verbose_name,  field.value_to_string(self))
+
+    def __str__(self):
+        person = Person.objects.get(id=self.person_id)
+        return 'Лицо: ' + str(person.fio) + '| Файл: ' + str(self.filename)
+    
+
+
+class FilesEvent(models.Model):
+    event_id = models.IntegerField(verbose_name='ID события')
+    file = models.FileField(verbose_name='Файл', upload_to=get_upload_path_file_event)
+    filename = models.CharField(verbose_name='Название файла', default=None, blank=True, null=True)
+
+    class Meta:
+        verbose_name = 'Файл события'
+        verbose_name_plural = 'СОБЫТИЯ: Файлы событий'
+        
+    def __iter__(self):
+        for field in self._meta.fields:
+             yield (field.verbose_name,  field.value_to_string(self))
+
+    def __str__(self):
+        return 'Событие: ' + str(self.event_id) + '| Файл: ' + str(self.filename)

@@ -1,0 +1,62 @@
+{% extends 'index.html' %}
+
+{% load static %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+{% endblock %}
+
+{% block content %}
+    {% if is_edit %}
+        <h1 style="text-align: center; font-size: 40px; padding-top: 50px; margin: 0;">Изменение записи</h1>
+    {% else %}
+        <h1 style="text-align: center; font-size: 40px; padding-top: 50px; margin: 0;">Создание записи</h1>
+    {% endif %}
+    <div class="main-content main-content-form">
+        <form class="event-form" id="event" method="post" action="">
+            {% if is_edit %}
+                <span hidden id="is_edit"></span>
+                <span hidden id="sex_from_form">{{ form.sex }}</span>
+            {% endif %}
+            <div class="form-add-event">
+                <div class="main-info">
+                    <h1>{{ header }}</h1>
+                    {% csrf_token %}
+                    
+                    {% for obj in form %}
+                        {% if obj.label == 'Дата рождения' %}
+                            {{ obj.label }}
+                            <input type="date" name="birthday" required="" id="id_birthday" value="">
+                        {% elif obj.label == 'Пол (м/ж)' %}
+                            {{ obj.label }}
+                            <select style="height: 2em; width: 355px; font-size: 16px;" name="sex" id="sex">
+                                <option value="м">м</option>
+                                <option value="ж">ж</option>
+                            </select>
+                            <br>
+                        {% else %}
+                            {{ obj.label }}
+                            {{ obj }}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% if redirected %}
+                <input type="hidden" name="redirected">
+            {% endif %}
+            
+            <button id="main-form-submit" name="submit" type="submit">Подтвердить данные</button>
+        </form>
+    </div>
+    
+{% endblock %}
+
+{% block underscripts %}
+
+{% if events %}
+<script src="{% static 'js/forms.js' %}"></script>
+{% endif %}
+
+<script src="{% static 'js/add-person-solo.js' %}"></script>
+
+{% endblock %}

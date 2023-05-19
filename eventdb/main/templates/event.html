@@ -10,94 +10,88 @@
             <br>
             <a id="dwn-word" href="">Скачать Word</a>
         </div>
-        <div class="table-view">
-            <h1>Событие</h1>
-            <table style="width: 50%">
-                {% for key, value in event %}
-                <tr>
-                    <td style="border: 1px black solid;"><b>{{ key }}</b></td>
-                    <td style="border: 1px black solid;">{{ value }}</td>
-                </tr>
-                {% endfor %}
-            </table>
-            <div class="intruders">
-                <h1>Нарушители</h1>
-                {% if not intruders %}
-                    <h3 style="color: grey">Нет данных</h3>
-                {% else %}
-                    {% for i in intruders %}
-                    <table style="width: 50%">
-                        {% for key, value in i %}
-                        {% if key == 'Потерпевший' or key == 'Нарушитель' or key == 'Свидетель' or key == 'add at' %}
-                        {% else %}
-                            {% if key == 'ФИО нарушителя' %}
-                                <td style="border: 1px black solid;"><b>{{ key }}</b></td>
-                                <td style="border: 1px black solid;"><a href="{% url 'person' i.id %}">{{ value }}</a></td>
-                            {% else %}
-                                <tr>
-                                    <td style="border: 1px black solid;"><b>{{ key }}</b></td>
-                                    <td style="border: 1px black solid;">{{ value }}</td>
-                                </tr>
-                            {% endif %}
-                        {% endif %}
+        <div style="display: flex; justify-content: space-between;">
+            <div style="width: 50%;">
+                <!-- FILES -->
+                <div>
+                    <h1>Документы</h1>
+                    {% if files %}
+                        {% for file in files %}
+                            <a class="documents" href="{{file.file.url}}">{{file.filename}}</a>
+                            <br>
+                        {% endfor %}
+                    {% else %}
+                        <h3 style="color: grey">Нет файлов</h3>
+                    {% endif %}
+                    <form action="" method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <label class="add-more tbm-border" type="submit" for="id_file">Добавить</label>
+                        <input style="margin-top: 30px" type="file" accept="file/*" name="file" id="id_file">
+                    </form>
+                </div>
+                <!-- MAIN CONTENT  -->
+                <div class="person-table">
+                    <h1>Событие</h1>
+                    <table class="event-table" style="width: 100%">
+                        {% for key, value in event %}
+                        <tr>
+                            <td class="td-border"><b>{{ key }}</b></td>
+                            <td class="td-border">{{ value }}</td>
+                        </tr>
                         {% endfor %}
                     </table>
-                    {% endfor %}
-                {% endif %}
-            </div>
-            <div class="injured">
-                <h1>Потерпевшие</h1>
-                {% if not witnesses %}
-                    <h3 style="color: grey">Нет данных</h3>
-                {% else %}
-                    {% for i in witnesses %}
-                    <table style="width: 50%">
-                        {% for key, value in i %}
-                        {% if key == 'Потерпевший' or key == 'Нарушитель' or key == 'Свидетель' or key == 'add at' %}
+                </div>
+                <div class="person-buttons">
+                    <a class="add-more tbm-border" href="{% url 'add-person-on-event' event_id %}">Добавить фигуранта<span class="material-symbols-outlined">add</span></a>
+                    <a class="add-more tbm-border" href="{% url 'edit-event' event_id %}">Изменить данные<span class="material-symbols-outlined">edit</span></a>
+                </div>
+                <!-- PERSONS -->
+                {% for line in persons_list %}
+                    <div class="person-table">
+                        <h1>{{ line.name }}</h1>
+                        {% if not line.persons %}
+                            <h3 style="color: grey">Нет данных</h3>
                         {% else %}
-                            {% if key == 'ФИО нарушителя' %}
-                                <td style="border: 1px black solid;"><b>{{ key }}</b></td>
-                                <td style="border: 1px black solid;"><a href="{% url 'person' i.id %}">{{ value }}</a></td>
-                            {% else %}
-                                <tr>
-                                    <td style="border: 1px black solid;"><b>{{ key }}</b></td>
-                                    <td style="border: 1px black solid;">{{ value }}</td>
-                                </tr>
-                            {% endif %}
-                        {% endif %}
-                        {% endfor %}
-                    </table>
-                    {% endfor %}
-                {% endif %}
-            </div>
-            <div class="witness">
-                <h1>Свидетели</h1>
-                {% if not injureds %}
-                    <h3 style="color: grey">Нет данных</h3>
-                {% else %}
-                    {% for i in injureds %}
-                        <table style="width: 50%">
-                            {% for key, value in i %}
-                            {% if key == 'Потерпевший' or key == 'Нарушитель' or key == 'Свидетель' or key == 'add at' %}
-                            {% else %}
-                                {% if key == 'ФИО нарушителя' %}
-                                    <td style="border: 1px black solid;"><b>{{ key }}</b></td>
-                                    <td style="border: 1px black solid;"><a href="{% url 'person' i.id %}">{{ value }}</a></td>
+                            {% for i in line.persons %}
+                                {% if 'i' in i %}
+                                    <a class="person-link" href="{% url 'person' i.i.id %}">{{ i.j }}: {{ i.i }}</a><br><br>
                                 {% else %}
-                                    <tr>
-                                        <td style="border: 1px black solid;"><b>{{ key }}</b></td>
-                                        <td style="border: 1px black solid;">{{ value }}</td>
-                                    </tr>
+                                    <a class="person-link" href="{% url 'person' i.id %}">{{ i }}</a><br><br>
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+        
+                {% endfor %}
+            </div>
+            <!-- CHANGES -->
+            {% if request.user.username == 'root' %}
+            <div style="width: 45%;">
+                <h1>Изменения</h1>
+                <div>
+                    {% if not changes %}
+                        <h3 style="color: grey">Нет данных</h3>
+                    {% else %}
+                        {% for i in changes %}
+                            {% if request.user.username == 'root' %}
+                                <a class="person-link" href="{% url 'change' i.id %}">ID изменения: {{ i.id }}</a><br><br>
+                            {% else %}
+                                {% if i.id_user == request.user.id %}
+                                    <a class="person-link" href="{% url 'change' i.id %}">ID изменения: {{ i.id }}</a><br><br>
                                 {% endif %}
                             {% endif %}
-                            {% endfor %}
-                        </table>
-                    {% endfor %}
-                {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                </div>
             </div>
+            {% endif %}
         </div>
     </div>
     
     
 
+{% endblock %}
+
+{% block underscripts %}
+    <script src="{% static 'js/tools/add-files.js' %}"></script>
 {% endblock %}

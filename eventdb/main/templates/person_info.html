@@ -10,31 +10,125 @@
             <br>
             <a id="dwn-word" href="">Скачать Word</a>
         </div>
-    
-        <div class="person-table">
-            <h1>{{ table_name }}</h1>
-            <table style="width: 50%">
-                {% for key, value in person %}
-                {% if key == 'Потерпевший' or key == 'Нарушитель' or key == 'Свидетель' or key == 'add at' %}
-                {% else %}
-                    <tr>
-                        <td style="border: 2px black solid;"><b>{{ key }}</b></td>
-                        <td style="border: 2px black solid;">{{ value }}</td>
-                    </tr>
-                {% endif %}
+        <div style="display: flex; justify-content: space-between;">
+            <div style="width: 50%;">
+                <div style="display: flex">
+                    <div>
+                        <h1>Фотография лица</h1>
+                        {% if image %}
+                            <div class="td-border" style="background-size:cover; width: 200px; height: 300px; background-image: url({{image.url}}); background-position: center;"></div>
+                            <form action="" method="post" enctype="multipart/form-data" style="display: flex; justify-content: center; flex-direction: column; align-items: center;">
+                                {% csrf_token %}
+                                <label class="edit-photo add-more tbm-border" id="label-image" for="id_image">Изменить фото<span class="material-symbols-outlined">add</span></label>
+                                <input type="file" accept="image/*" name="image" id="id_image">
+                            </form>
+                        {% else %}
+                            <div class="placephoto">
+                                <form action="" method="post" enctype="multipart/form-data" style="display: flex; justify-content: center; flex-direction: column; align-items: center;">
+                                    {% csrf_token %}
+                                    <label id="label-image" for="id_image">Выбрать фото<span class="material-symbols-outlined">add</span></label>
+                                    <input type="file" accept="image/*" name="image" id="id_image">
+                                </form>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div style="margin-left: 30px">
+                        <h1>Документы</h1>
+                        {% if files %}
+                            {% for file in files %}
+                                <a class="documents" href="{{file.file.url}}">{{file.filename}}</a>
+                                <br>
+                            {% endfor %}
+                        {% else %}
+                            <h3 style="color: grey">Нет файлов</h3>
+                        {% endif %}
+                        <form action="" method="post" enctype="multipart/form-data" style="display: flex; justify-content: center; flex-direction: column; align-items: center;">
+                            {% csrf_token %}
+                            <label class="add-more tbm-border" type="submit" for="id_file">Добавить</label>
+                            <input style="margin-top: 30px" type="file" accept="file/*" name="file" id="id_file">
+                        </form>
+                    </div>
+                </div>
+                <div class="person-table">
+                    <h1>{{ table_name }}</h1>
+                    <table style="width: 100%">
+                        {% for key, value in person %}
+                        {% if key == 'Потерпевший' or key == 'Нарушитель' or key == 'Свидетель' or key == 'add at' or key == 'FK related' or key == 'Автор' or key == 'Фото лица' %}
+                        {% else %}
+                            <tr>
+                                <td class="td-border"><b>{{ key }}</b></td>
+                                <td class="td-border">{{ value }}</td>
+                            </tr>
+                        {% endif %}
+                        {% endfor %}
+                    </table>
+                </div>
+                <div class="person-buttons">
+                    <a class="add-more tbm-border" href="{% url 'add-adress' person.id %}">Добавить адрес<span class="material-symbols-outlined">add</span></a>
+                    <a class="add-more tbm-border" href="{% url 'edit-person' person.id %}">Изменить данные<span class="material-symbols-outlined">edit</span></a>
+                </div>
+        
+                {% for place in places %}
+                    <div class="person-table">
+                        <h1>{{ place.name }}</h1>
+                        {% if not place.place %}
+                            <h3 style="color: grey">Нет данных</h3>
+                        {% else %}
+                            {% for i in place.place %}
+                                <table style="width: 100%;">
+                                    {% for key, value in i %}
+                                        {% if key == 'ID' or 'id' in key or key == 'Добавил:' %}
+                                        {% else %}
+                                            <tr>
+                                                <td class="td-border"><b>{{ key }}</b></td>
+                                                <td class="td-border">{{ value }}</td>
+                                            </tr>
+                                        {% endif %}
+                                    {% endfor %}
+                                </table>
+                                <br>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+        
                 {% endfor %}
-            </table>
+            
+                <h1>Где фигурирует:</h1>
+                {% if not events %}
+                    <h3 style="color: grey">Нет данных</h3>
+                {% else %}
+                {% for i in events %}
+                    <a href="{% url 'event' i.id_event %}" class="event-href">{{ i }}</a><br>
+                {% endfor %}
+                {% endif %}
+            </div>
+            {% if request.user.username == 'root' %}
+            <div style="width: 45%;">
+                <h1>Изменения</h1>
+                <div style=" display: flex; flex-wrap: wrap;">
+                    {% if not changes %}
+                        <h3 style="color: grey">Нет данных</h3>
+                    {% else %}
+                        {% for i in changes %}
+                                    <div class="notes">
+                                        {% for key, value in i %}
+                                            {% if key == 'Поле изменения:' or key == 'Тип записи:' or key == 'ID записи:' or key == 'Тип записи:' %}
+                                            {% else %}
+                                            <p class="note"><b>{{ key }}</b>  {{ value }}</p>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
         </div>
-    
-        <h1>Где фигурирует:</h1>
-        {% if not events %}
-            <h3 style="color: grey">Нет данных</h3>
-        {% else %}
-        {% for i in events %}
-            <a href="{% url 'event' i.id_event %}" class="event-href">{{ i }}</a><br>
-        {% endfor %}
-        {% endif %}
     </div>
     
 
+{% endblock %}
+
+{% block underscripts %}
+    <script src="{% static 'js/tools/add-files.js' %}"></script>
 {% endblock %}
