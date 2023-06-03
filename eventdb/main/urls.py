@@ -11,7 +11,8 @@ from .views import personView, eventView, changeView
 from .views import addPerson, addAdress
 from .views import searchPerson, add_person_with_redirect
 
-from .views import add_person_on_event, edit_person, edit_event
+from .views import add_person_on_event, edit_person, edit_event, create_report, set_adaptive
+
 
 
 urlpatterns = [
@@ -38,4 +39,12 @@ urlpatterns = [
 
     path('edit-person/<int:id_person>', edit_person, name='edit-person'),
     path('edit-event/<int:id_event>', edit_event, name='edit-event'),
+
+    path('create-report/', create_report, name='create-report'),
+
+    path('set-adaptive/', set_adaptive, name='set-adaptive'),
+
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+handler404 = 'main.views.handling_404'

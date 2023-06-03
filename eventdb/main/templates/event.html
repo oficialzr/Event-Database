@@ -2,6 +2,10 @@
 
 {% load static %}
 
+{% block title %}
+    <title>Просмотр события</title>
+{% endblock %}
+
 
 {% block content %}
     <div class="main-content">
@@ -23,11 +27,13 @@
                     {% else %}
                         <h3 style="color: grey">Нет файлов</h3>
                     {% endif %}
-                    <form action="" method="post" enctype="multipart/form-data">
-                        {% csrf_token %}
-                        <label class="add-more tbm-border" type="submit" for="id_file">Добавить</label>
-                        <input style="margin-top: 30px" type="file" accept="file/*" name="file" id="id_file">
-                    </form>
+                    {% if event.author == author or request.user.is_superuser %}
+                        <form action="" method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <label class="add-more tbm-border" type="submit" for="id_file">Добавить</label>
+                            <input style="margin-top: 30px" type="file" accept="file/*" name="file" id="id_file">
+                        </form>
+                    {% endif %}
                 </div>
                 <!-- MAIN CONTENT  -->
                 <div class="person-table">
@@ -41,10 +47,12 @@
                         {% endfor %}
                     </table>
                 </div>
-                <div class="person-buttons">
-                    <a class="add-more tbm-border" href="{% url 'add-person-on-event' event_id %}">Добавить фигуранта<span class="material-symbols-outlined">add</span></a>
-                    <a class="add-more tbm-border" href="{% url 'edit-event' event_id %}">Изменить данные<span class="material-symbols-outlined">edit</span></a>
-                </div>
+                {% if event.author == author or request.user.is_superuser %}
+                    <div class="person-buttons">
+                        <a class="add-more tbm-border" href="{% url 'add-person-on-event' event_id %}">Добавить фигуранта<span class="material-symbols-outlined">add</span></a>
+                        <a class="add-more tbm-border" href="{% url 'edit-event' event_id %}">Изменить данные<span class="material-symbols-outlined">edit</span></a>
+                    </div>
+                {% endif %}
                 <!-- PERSONS -->
                 {% for line in persons_list %}
                     <div class="person-table">
@@ -65,7 +73,7 @@
                 {% endfor %}
             </div>
             <!-- CHANGES -->
-            {% if request.user.username == 'root' %}
+            {% if request.user.is_superuser %}
             <div style="width: 45%;">
                 <h1>Изменения</h1>
                 <div>

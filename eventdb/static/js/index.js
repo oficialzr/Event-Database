@@ -24,8 +24,6 @@ function openViewListEdit() {
     }
 }
 
-const id = makeid(30)
-
 
 
 
@@ -36,4 +34,4 @@ function goToMainMenu() {
     window.location.replace('/')
 }
 
-});
+}());

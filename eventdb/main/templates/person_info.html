@@ -2,12 +2,15 @@
 
 {% load static %}
 
+{% block title %}
+    <title>Просмотр лица</title>
+{% endblock %}
+
 
 {% block content %}
     <div class="main-content">
         <div class="right-position">
             <a id="dwn-html" href="">Скачать Excel</a>
-            <br>
             <a id="dwn-word" href="">Скачать Word</a>
         </div>
         <div style="display: flex; justify-content: space-between;">
@@ -17,19 +20,25 @@
                         <h1>Фотография лица</h1>
                         {% if image %}
                             <div class="td-border" style="background-size:cover; width: 200px; height: 300px; background-image: url({{image.url}}); background-position: center;"></div>
-                            <form action="" method="post" enctype="multipart/form-data" style="display: flex; justify-content: center; flex-direction: column; align-items: center;">
-                                {% csrf_token %}
-                                <label class="edit-photo add-more tbm-border" id="label-image" for="id_image">Изменить фото<span class="material-symbols-outlined">add</span></label>
-                                <input type="file" accept="image/*" name="image" id="id_image">
-                            </form>
-                        {% else %}
-                            <div class="placephoto">
+                            {% if author == person.author or request.user.is_superuser %}
                                 <form action="" method="post" enctype="multipart/form-data" style="display: flex; justify-content: center; flex-direction: column; align-items: center;">
                                     {% csrf_token %}
-                                    <label id="label-image" for="id_image">Выбрать фото<span class="material-symbols-outlined">add</span></label>
+                                    <label class="edit-photo add-more tbm-border" for="id_image">Изменить фото<span class="material-symbols-outlined">edit</span></label>
                                     <input type="file" accept="image/*" name="image" id="id_image">
                                 </form>
-                            </div>
+                            {% endif %}
+                        {% else %}
+                            {% if author == person.author or request.user.is_superuser %}
+                                <div class="placephoto">
+                                    <form action="" method="post" enctype="multipart/form-data" style="display: flex; justify-content: center; flex-direction: column; align-items: center; width: 100%;">
+                                        {% csrf_token %}
+                                        <label id="label-image" for="id_image"><a>Выбрать фото</a><span class="material-symbols-outlined">add</span></label>
+                                        <input type="file" accept="image/*" name="image" id="id_image">
+                                    </form>
+                                </div>
+                            {% else %}
+                                <h3 style="color: grey">Нет фотографии</h3>
+                            {% endif %}
                         {% endif %}
                     </div>
                     <div style="margin-left: 30px">
@@ -42,11 +51,13 @@
                         {% else %}
                             <h3 style="color: grey">Нет файлов</h3>
                         {% endif %}
-                        <form action="" method="post" enctype="multipart/form-data" style="display: flex; justify-content: center; flex-direction: column; align-items: center;">
-                            {% csrf_token %}
-                            <label class="add-more tbm-border" type="submit" for="id_file">Добавить</label>
-                            <input style="margin-top: 30px" type="file" accept="file/*" name="file" id="id_file">
-                        </form>
+                        {% if author == person.author or request.user.is_superuser %}
+                            <form action="" method="post" enctype="multipart/form-data" style="display: flex; justify-content: center; flex-direction: column; align-items: center;">
+                                {% csrf_token %}
+                                <label class="add-more tbm-border" type="submit" for="id_file">Добавить</label>
+                                <input style="margin-top: 30px" type="file" accept="file/*" name="file" id="id_file">
+                            </form>
+                        {% endif %}
                     </div>
                 </div>
                 <div class="person-table">
@@ -63,10 +74,12 @@
                         {% endfor %}
                     </table>
                 </div>
-                <div class="person-buttons">
-                    <a class="add-more tbm-border" href="{% url 'add-adress' person.id %}">Добавить адрес<span class="material-symbols-outlined">add</span></a>
-                    <a class="add-more tbm-border" href="{% url 'edit-person' person.id %}">Изменить данные<span class="material-symbols-outlined">edit</span></a>
-                </div>
+                {% if person.author == author or request.user.is_superuser %}
+                    <div class="person-buttons">
+                        <a class="add-more tbm-border" href="{% url 'add-adress' person.id %}">Добавить адрес<span class="material-symbols-outlined">add</span></a>
+                        <a class="add-more tbm-border" href="{% url 'edit-person' person.id %}">Изменить данные<span class="material-symbols-outlined">edit</span></a>
+                    </div>
+                {% endif %}
         
                 {% for place in places %}
                     <div class="person-table">
@@ -102,7 +115,7 @@
                 {% endfor %}
                 {% endif %}
             </div>
-            {% if request.user.username == 'root' %}
+            {% if request.user.is_superuser %}
             <div style="width: 45%;">
                 <h1>Изменения</h1>
                 <div style=" display: flex; flex-wrap: wrap;">

@@ -1,36 +1,41 @@
 {% extends 'index.html' %}
 
+{% block title %}
+    <title>Добавление фигуранта</title>
+{% endblock %}
+
 {% load static %}
 
 {% block content %}
     <div class="main-content main-adress-form" id="placeholder_for_data">
-        
-        <h2 style="margin-top: 0; padding-top: 0">Выберите лицо из списка</h2>
+        <h1>Создайте новое лицо</h1>
+        <a id="addPerson" class="add-more" style="justify-self: center" href="{% url 'add-person-redicrect' %}">Добавить новое лицо</a>
+
+        <br><br><br>
+        <h1>Или выберите лицо из списка</h1>
         
         <div id="autocomplete" class="autocomplete">
             <label style="color: grey; padding-bottom: 5px; font-size: 20px;" for="search">Найдите лицо</label>
             <input class="autocomplete-input" name="search" id="auto-input" type="search">
-            <div id="hidden-desc" style="display: none; flex-direction: column;">
-                <label style="padding-bottom: 5px; font-size: 20px;" for="desc">Кем является?</label>
-                <input class="default-input" type="text" name="desc" id="input-desc">
-            </div>
             <ul class="autocomplete-result-list"></ul>
-            
         </div>
-        <h2>Выберите роль лица</h2>
+        <h3>Выберите роль лица</h3>
         <select name="form-choice" id="form-choice">
             <option value="1">Нарушитель</option>
             <option value="2">Свидетель</option>
             <option value="3">Потерпевший</option>
             <option value="4">Другой фигурант</option>
         </select>
+        <div id="hidden-desc" style="display: none; flex-direction: column;">
+            <label style="padding-bottom: 5px; font-size: 20px;" for="desc">Кем является?</label>
+            <input class="default-input" type="text" name="desc" id="input-desc">
+        </div>
         <a id="confBtn" class="add-more" style="align-self: center; display: flex;">Добавить лицо</a>
         <br><br>
-        <h2 style="margin-top: 0; padding-top: 0">Или создайте новое лицо</h2>
-        <a id="addPerson" class="add-more" style="justify-self: center" href="{% url 'add-person-redicrect' %}">Добавить новое лицо</a>
         <br>
-        <a id="backBtn" class="add-more" style="color: red">Назад</a>
+        <a id="backBtn" class="add-more" style="color:crimson; font-size: 24px;">Назад</a>
     </div>
+
     <input hidden id="event_id" value="{{ event_id }}">
 {% endblock %}
 

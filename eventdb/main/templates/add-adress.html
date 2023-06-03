@@ -2,6 +2,10 @@
 
 {% load static %}
 
+{% block title %}
+    <title>Добавление адреса</title>
+{% endblock %}
+
 {% block content %}
     <div class="main-content main-adress-form" id="placeholder_for_data">
         <select name="form-choice" id="form-choice">
@@ -10,33 +14,7 @@
             <option value="3">Адрес регистрации</option>
             <option value="4">Другой адрес</option>
         </select>
-        <form style="display: none;" class="event-form" id="defaultForm" method="post" action="">
-            <div class="form-add-event">
-                <div class="main-info">
-                    <div id="placeholder">{{ header }}</div>
-                    {% csrf_token %}
-                    {% for obj in form_adress %}
-                        {% if obj.label == 'Описание адреса' %}
-                            <div id="place" style="display: flex; flex-direction: column;">
-                                {{ obj.label }}
-                                {{ obj  }}
-                            </div>
-                        {% elif obj.label == 'Юридическое лицо' %}
-                            <div id="entity" style="display: flex; flex-direction: column;">
-                                {{ obj.label }}
-                                {{ obj  }}
-                            </div>
-                        {% else %}
-                            {{ obj.label }}
-                            {{ obj }}
-                        {% endif %}
-                    {% endfor %}
-                </div>
-            </div>
-            <input id="role" name="role" style="display: none;">
-            <button id="other-btn" name="submit" type="submit">Подтвердить данные</button>
-            <a class="back-button" href="/person/{{ person_id }}">Назад</a>
-        </form>
+
         <form style="display: flex;" class="event-form" id="birthForm" method="post" action="">
             <div class="form-add-event">
                 <div class="main-info">
@@ -51,10 +29,56 @@
             <button id="birth-btn" name="submit" type="submit">Подтвердить данные</button>
             <a class="back-button" href="/person/{{ person_id }}">Назад</a>
         </form>
+
+        <form style="display: none;" class="event-form" id="workForm" method="post" action="">
+            <div class="form-add-event">
+                <div class="main-info">
+                    {% csrf_token %}
+                    {% for obj in form_work %}
+                            {{ obj.label }}
+                            {{ obj }}
+                    {% endfor %}
+                </div>
+            </div>
+            <input value="2" name="role" style="display: none;">
+            <button id="birth-btn" name="submit" type="submit">Подтвердить данные</button>
+            <a class="back-button" href="/person/{{ person_id }}">Назад</a>
+        </form>
+
+        <form style="display: none;" class="event-form" id="liveForm" method="post" action="">
+            <div class="form-add-event">
+                <div class="main-info">
+                    {% csrf_token %}
+                    {% for obj in form_live %}
+                        {{ obj.label }}
+                        {{ obj }}
+                    {% endfor %}
+                </div>
+            </div>
+            <input value="3" name="role" style="display: none;">
+            <button id="other-btn" name="submit" type="submit">Подтвердить данные</button>
+            <a class="back-button" href="/person/{{ person_id }}">Назад</a>
+        </form>
+
+        <form style="display: none;" class="event-form" id="otherForm" method="post" action="">
+            <div class="form-add-event">
+                <div class="main-info">
+                    {% csrf_token %}
+                    {% for obj in form_other %}
+                        {{ obj.label }}
+                        {{ obj }}
+                    {% endfor %}
+                </div>
+            </div>
+            <input value="4" name="role" style="display: none;">
+            <button id="other-btn" name="submit" type="submit">Подтвердить данные</button>
+            <a class="back-button" href="/person/{{ person_id }}">Назад</a>
+        </form>
         <a hidden id="id">{{ person_id }}</a>
     </div>
 {% endblock %}
 
 {% block underscripts %}
+    <script src="{% static 'js/tools/adaptive-list.js' %}"></script>
     <script src="{% static 'js/add-adress.js' %}"></script>
 {% endblock %}

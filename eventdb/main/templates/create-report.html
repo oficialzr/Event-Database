@@ -1,0 +1,74 @@
+{% extends 'index.html' %}
+
+{% load static %}
+
+{% block title %}
+    <title>Создание отчета</title>
+{% endblock %}
+
+{% block content %}
+    <div class="rep-main">
+
+        <div class="create-rep" id="create-rep">
+            <form method="get" action="" id="form-rep">
+
+                <b style="padding-bottom: 10px;">Вид отчета</b>
+                <select name="type_rep" id="type_rep">
+                    <option value="event">Событие</option>
+                    <option value="person">Лицо</option>
+                </select><br>
+                
+                <div hidden id="hidden-block" style="display: flex; flex-direction: column;">
+                    <b style="padding-bottom: 10px;">Пол</b>
+                    <select name="sex_rep" id="sex_rep">
+                        {% for i in person_form.sex %}
+                            {{ i }}
+                        {% endfor %}
+                    </select><br>
+    
+                    <b style="padding-bottom: 10px;">Роль лица</b>
+                    <select name="role_rep" id="role_rep">
+                        {% for i in person_form.role %}
+                            {{ i }}
+                        {% endfor %}
+                    </select><br>
+                </div>
+    
+                <b style="padding-bottom: 10px;">Юридическое лицо</b>
+                <select name="entity_rep" id="entity_rep">
+                    {% for i in event_form.entity %}
+                        {{ i }}
+                    {% endfor %}
+                </select><br>
+                
+                <b style="padding-bottom: 10px;">Дивизион</b>
+                <select name="division_rep" id="division_rep">
+                    {% for i in event_form.division %}
+                        {{ i }}
+                    {% endfor %}
+                </select><br>
+    
+                <b style="padding-bottom: 10px;">Филиал</b>
+                <select name="filial_rep" id="filial_rep">
+                    {% for i in event_form.filial %}
+                        {{ i }}
+                    {% endfor %}
+                </select><br>
+    
+                <b>Период</b>
+                <div>
+                    С <input type="date" name="start-date" id="start-date" required>
+                    : По <input type="date" name="end-date" id="end-date" required>
+                </div>
+                <div class="center-col">
+                    <button class="tbm-border rep-btn" type="submit">Создать</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block underscripts %}
+    <script src="{% static 'js/tools/create-report.js' %}"></script>
+{% endblock %}

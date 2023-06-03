@@ -1,15 +1,27 @@
 from django import forms
-from .models import Person, AdressesPlacesOfWork, Event
+from .models import Person, Event, Entity, Filial, Division, Representation
+from .models import AdressesPlacesOfBirth, AdressesPlacesOfLive, OtherAdresses, AdressesPlacesOfWork
 
 
-class EventForm(forms.Form):
-    date_incedent = forms.DateTimeField(label='Дата проишествия (Формат даты: YYYY-MM-DD HH:MM)')
+
+EMPTY_VALUE = [('', '--------')]
+
+
+class EventForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(EventForm, self).__init__(*args, **kwargs)
+        self.fields['entity'].choices = EMPTY_VALUE + sorted(list((i, i) for i in Entity.objects.all().values_list('name', flat=True)))
+        self.fields['division'].choices = EMPTY_VALUE + sorted(list((i, i) for i in Division.objects.all().values_list('name', flat=True)))
+        self.fields['filial'].choices = EMPTY_VALUE + sorted(list((i, i) for i in Filial.objects.all().values_list('name', flat=True)))
+        self.fields['representation'].choices = EMPTY_VALUE + sorted(list((i, i) for i in Representation.objects.all().values_list('name', flat=True)))
+
+    date_incedent = forms.DateTimeField(label='Дата проишествия')
     type = forms.CharField(max_length=100, label='Тип проишествия')
 
-    division = forms.CharField(max_length=100, label='Дивизион')
-    filial = forms.CharField(max_length=200, label='Филиал')
-    representation = forms.CharField(label='Представительство')
-    entity = forms.CharField(label='Юридическое лицо')
+    entity = forms.ChoiceField(label='Юридическое лицо', required=False)
+    division = forms.ChoiceField(label='Дивизион', required=False)
+    filial = forms.ChoiceField(label='Филиал', required=False)
+    representation = forms.ChoiceField(label='Представительство', required=False)
 
     description = forms.CharField(label='Описание события', widget=forms.Textarea)
     way = forms.CharField(label='Способ проникновения', max_length=40)
@@ -18,9 +30,15 @@ class EventForm(forms.Form):
     object = forms.CharField(max_length=150, label='Предмет посягательства')
     place = forms.CharField(max_length=300, label='Место')
 
+    class Meta:
+        model = Event
+        exclude = ['id', 'change_date', 'author']
 
 
-class PersonForm(forms.Form):
+class PersonForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(PersonForm, self).__init__(*args, **kwargs)
+
     last_name = forms.CharField(max_length=30, label='Фамилия', required=True)
     first_name = forms.CharField(max_length=30, label='Имя', required=True)
     second_name = forms.CharField(max_length=30, label='Отчество', required=True)
@@ -29,43 +47,85 @@ class PersonForm(forms.Form):
 
     description = forms.CharField(widget=forms.Textarea, label='Описание', required=True)
 
-
-class AdressForm(forms.Form):
-    entity = forms.CharField(label='Юридическое лицо', required=False)
-    description = forms.CharField(label='Описание адреса', required=False)
-    country = forms.CharField(label='Страна', required=True)
-    region = forms.CharField(label='Область', required=False)
-    area = forms.CharField(label='Район', required=False)
-    locality = forms.CharField(label='Населенный пункт', required=False)
-    street = forms.CharField(label='Улица', required=False)
-    house = forms.CharField(label='Дом', required=False)
-    frame = forms.CharField(label='Корпус', required=False)
-    apartment = forms.CharField(label='Квартира', required=False)
+    class Meta:
+        model = Person
+        exclude = ['fio', 'add_at', 'id_related', 'author', 'person_image']
 
 
-class AdressBirthForm(forms.Form):
-    country = forms.CharField(label='Страна', required=True)
-    region = forms.CharField(label='Область', required=False)
-    adress = forms.CharField(label='Адрес', required=False, widget=forms.Textarea)
+class AdressLiveForm(forms.ModelForm):
+    class Meta:
+        model = AdressesPlacesOfLive
+        exclude = ['id_place_of_live', 'who_added']
+
+
+class AdressOtherForm(forms.ModelForm):
+    class Meta:
+        model = OtherAdresses
+        exclude = ['id_other_places', 'who_added']
+
+
+class AdressWorkForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(AdressWorkForm, self).__init__(*args, **kwargs)
+        self.fields['entity'].choices = EMPTY_VALUE + sorted(list((i, i) for i in Entity.objects.all().values_list('name', flat=True)))
+        self.fields['division'].choices = EMPTY_VALUE + sorted(list((i, i) for i in Division.objects.all().values_list('name', flat=True)))
+        self.fields['filial'].choices = EMPTY_VALUE + sorted(list((i, i) for i in Filial.objects.all().values_list('name', flat=True)))
+        self.fields['representation'].choices = EMPTY_VALUE + sorted(list((i, i) for i in Representation.objects.all().values_list('name', flat=True)))
+
+    entity = forms.ChoiceField(label='Юридическое лицо', required=False)
+    division = forms.ChoiceField(label='Дивизион', required=False)
+    filial = forms.ChoiceField(label='Филиал', required=False)
+    representation = forms.ChoiceField(label='Представительство', required=False)
+
+    class Meta:
+        model = AdressesPlacesOfWork
+        exclude = ['id_place_of_work', 'who_added']
+
+
+class AdressBirthForm(forms.ModelForm):
+    class Meta:
+        model = AdressesPlacesOfBirth
+        exclude = ['id_place_of_birth', 'who_added']
 
 
 class FilterPersonForm(forms.Form):
+
+    def __init__(self, *args, **kwargs):
+        super(FilterPersonForm, self).__init__(*args, **kwargs)
+        self.fields['entity'].choices = EMPTY_VALUE + list((i, i) for i in Entity.objects.all().values_list('name', flat=True))
+        self.fields['division'].choices = EMPTY_VALUE + list((i, i) for i in Division.objects.all().values_list('name', flat=True))
+        self.fields['filial'].choices = EMPTY_VALUE + list((i, i) for i in Filial.objects.all().values_list('name', flat=True))
+        self.fields['representation'].choices = EMPTY_VALUE + list((i, i) for i in Representation.objects.all().values_list('name', flat=True))
+
     SEX = [('', 'Нет'), ('м', 'м'), ('ж', 'ж')]
     ROLE = [('', 'Нет'), ('Нарушитель', 'Нарушитель'), ('Свидетель', 'Свидетель'), ('Потерпевший', 'Потерпевший'), ('Другой фигурант', 'Другой фигурант')]
-    FILIALS = [('', 'Нет')] + [(i['locality'], i['locality']) for i in AdressesPlacesOfWork.objects.all().values('locality').distinct()]
 
     sex = forms.CharField(label='Пол', required=False, widget=forms.Select(choices=SEX))
     role = forms.CharField(label='Роль лица', required=False, widget=forms.Select(choices=ROLE))
-    filial = forms.CharField(label='Филиал', required=False, widget=forms.Select(choices=FILIALS))
-    entity = forms.ModelChoiceField(label='Юридическое лицо', required=False, queryset=AdressesPlacesOfWork.objects.all().values_list('entity', flat=True).distinct(), empty_label='Нет')
+    entity = forms.ChoiceField(label='Юридическое лицо', required=False)
+    division = forms.ChoiceField(label='Дивизион', required=False)
+    filial = forms.ChoiceField(label='Филиал', required=False)
+    representation = forms.ChoiceField(label='Представительство', required=False)
 
     search_input = forms.CharField(label='search', required=False)
 
 
 class FilterEventForm(forms.Form):
-    type = forms.ModelChoiceField(label='Вид события', queryset=Event.objects.all().values_list('type', flat=True).distinct(), empty_label='Нет', required=False)
-    division = forms.ModelChoiceField(label='Дивизион', queryset=Event.objects.all().values_list('division', flat=True).distinct(), empty_label='Нет', required=False)
-    filial = forms.ModelChoiceField(label='Филиал', queryset=Event.objects.all().values_list('filial', flat=True).distinct(), empty_label='Нет', required=False)
+
+    def __init__(self, *args, **kwargs):
+        super(FilterEventForm, self).__init__(*args, **kwargs)
+        self.fields['entity'].choices = EMPTY_VALUE + list((i, i) for i in Entity.objects.all().values_list('name', flat=True))
+        self.fields['division'].choices = EMPTY_VALUE + list((i, i) for i in Division.objects.all().values_list('name', flat=True))
+        self.fields['filial'].choices = EMPTY_VALUE + list((i, i) for i in Filial.objects.all().values_list('name', flat=True))
+        self.fields['representation'].choices = EMPTY_VALUE + list((i, i) for i in Representation.objects.all().values_list('name', flat=True))
+        self.fields['type'].choices = EMPTY_VALUE + list((i, i) for i in Event.objects.all().values_list('type', flat=True).distinct())
+
+    type = forms.ChoiceField(label='Вид события', required=False)
+
+    entity = forms.ChoiceField(label='Юридическое лицо', required=False)
+    division = forms.ChoiceField(label='Дивизион', required=False)
+    filial = forms.ChoiceField(label='Филиал', required=False)
+    representation = forms.ChoiceField(label='Представительство', required=False)
 
     search_input = forms.CharField(label='search', required=False)
 

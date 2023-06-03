@@ -1,0 +1,21 @@
+{% extends 'index.html' %}
+
+{% load static %}
+
+{% block title %}
+    <title>Ой...404</title>
+{% endblock %}
+
+{% block content %}
+    <div class="err404">
+        <a id="err404">
+            404
+        </a>
+        <h1 style="font-size: 30px">
+            Страница не найдена
+        </h1><br><br>
+        <p style="text-align: center; font-size: 24px;">
+            Страница, на которую вы пытаетесь<br>попасть, не существует или была удалена<br>Передите на <a style="color: blue; text-decoration: underline;" href="/">Главную страницу</a>
+        </p>
+    </div>
+{% endblock %}

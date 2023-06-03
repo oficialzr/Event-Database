@@ -17,22 +17,34 @@
 {% endblock %}
 
 {% block content %}
-
+<h1 id="head" class="header-page">{{ name }}</h1>
     <div class="main-content">
         <div class="header-main">
-            {% if name == 'Лица' %}
-            <a href="{% url 'add-person' %}" class="tbm-border" id="add-event">Добавить лицо</a>
-            {% elif event %}
-            <a href="{% url 'add-event' %}" class="tbm-border" id="add-event">Добавить событие</a>
-            {% endif %}
+            <div class="add-cr-filt">
+                {% if name == 'Лица' %}
+                    <a href="{% url 'add-person' %}" class="tbm-border add-btn-ev" id="add-person">Добавить лицо</a>
+                {% elif event %}
+                    <a href="{% url 'add-event' %}" class="tbm-border add-btn-ev" id="add-event">Добавить событие</a>
+                {% endif %}
+    
+    
+                <!-- CREATE REPORT -->
+    
+                <div class="place-rep">
+                    <a class="btn-rep add-btn tbm-border" id="create-report" href="{% url 'create-report' %}">Создать отчет</a>
+                </div>
+                
+                <!-- FILTER  -->
+
+            </div>
+
+            <!-- SORT -->
+
             <div class="sort-search">
-                <a id="filter-button">Фильтры</a>
                 <a>Сортировка:</a>
                 {% if person_num %}
                     <select name="sort" id="sortId">
                         <option value="Без сортировки">Без сортировки</option>
-                        <option name="byDateUp" value="По дате: раньше">По обновлению: недавно</option>
-                        <option name="byDateDown" value="По дате: позже">По обновлению: давно</option>
                         <option name="byNameUp" value="По фамилии: А-Я">По фамилии: А - Я</option>
                         <option name="byNameDown" value="По фамилии: Я-А">По фамилии: Я - А</option>
                     </select>
@@ -41,44 +53,24 @@
                         <option value="Без сортировки">Без сортировки</option>
                         <option name="byDateUp" value="По дате: раньше">По дате события: недавно</option>
                         <option name="byDateDown" value="По дате: позже">По дате события: давно</option>
-                        <option name="byNameUp" value="По фамилии: А-Я">По филиалу: А - Я</option>
-                        <option name="byNameDown" value="По фамилии: Я-А">По филиалу: Я - А</option>
+                        <option name="byNameDown" value="По фамилии: Я-А">По филиалу: А - Я</option>
+                        <option name="byNameUp" value="По фамилии: А-Я">По филиалу: Я - А</option>
                     </select>
                 {% endif %}
-                <div class="search">
-                    <form class="filter-form" action="" method="get">
-                        {% for i in form %}
-                        {% if i.label == 'search' %}
-                        {{i}}
-                        {% endif %}
-                        {% endfor %}
-                        {% if person %}
-                        <button type="submit" name="submit-btn" id="search-button-person"><span class="material-symbols-outlined">search</span></button>
-                        {% else %}
-                        <button type="submit" name="submit-btn" id="search-button-event"><span class="material-symbols-outlined">search</span></button>
-                        {% endif %}
-                        <button type="submit" id="delete-search" class="material-symbols-outlined">close</button>
-                </div>
+                
             </div>
         </div>
+
+
+        <!-- FILTERS -->
+
         <div class="filter" id="filter">
             <div class="filter-content">
-                {% if event %}
-                        {% for i in form %}
-                        {% if i.label == 'search' %}
-                        {% else %}
-                            <div>
-                                {{ i.label }}
-                                {{ i }}
-                            </div>
-                        {% endif %}
-                        {% endfor %}
-                        <div class="filter-btns">
-                            <button class="filter-button-action tbm-border" id="filter-accept">Применить фильтры</button>
-                            <button class="filter-button-action tbm-border" id="filter-delete">Очистить фильтры</button>
-                        </div>
-                    </form>
+                {% if person_num %}
+                    <form class="filter-form" id="filter-person" action="" method="get">
                 {% else %}
+                    <form class="filter-form" id="filter-event" action="" method="get">
+                {% endif %}
                     {% for i in form %}
                     {% if i.label == 'search' %}
                     {% else %}
@@ -88,17 +80,30 @@
                         </div>
                     {% endif %}
                     {% endfor %}
-                        <div class="filter-btns">
-                            <button class="filter-button-action tbm-border" id="filter-accept">Применить фильтры</button>
-                            <button class="filter-button-action tbm-border" id="filter-delete">Очистить фильтры</button>
-                        </div>
-                    </form>
-                {% endif %}
+                    <div class="filter-btns">
+                        <button class="filter-button-action tbm-border" id="filter-accept">Применить фильтры</button>
+                        <button class="filter-button-action tbm-border" id="filter-delete">Очистить фильтры</button>
+                    </div>
+                </form>
+                
             </div>
         </div>
+
+        <!-- MAIN CONTENT -->
+
         <table class="table-main" id="tableMain">
-            <h1 id="head" class="header-page">{{ name }}</h1>
-            <h3>Найдено записей: <a id="counter"></a></h3>
+            <div class="res-search">
+                <h3>Найдено записей: <a id="counter"></a></h3>
+                <div class="search">
+                    {% for i in form %}
+                        {% if i.label == 'search' %}
+                            {{i}}
+                        {% endif %}
+                    {% endfor %}
+    
+                    <button type="submit" id="search-button-person"><span class="material-symbols-outlined">search</span><span class="material-symbols-outlined" id="delete-search">close</span></button>
+                </div>
+            </div>
             {% if person_num %}
                 <tr class="header-table">
                     <th hidden>Добавлено/Обновлено</th>
@@ -137,6 +142,7 @@
                     <th id="type">Вид события</th>
                     <th id="division">Дивизион</th>
                     <th id="filial">Филиал</th>
+                    <th id="filial">Представительство</th>
                     <th id="empty-col">Действия</th>
                 </tr>
                 <tbody id="tbodyTable">
@@ -149,6 +155,7 @@
                         <td id="type">{{ line.type }}</td>
                         <td id="division">{{ line.division }}</td>
                         <td id="filial">{{ line.filial }}</td>
+                        <td id="filial">{{ line.representation }}</td>
                         <td id="empty-col">
                             <div>
                                 <a href="{% url 'event' line.id %}">Открыть<span class="material-symbols-outlined">open_in_new</span></a>                       
@@ -159,6 +166,9 @@
                 </tbody>
             {% endif %}
         </table>
+
+        <!-- PAGINATE -->
+
         <div class="pagination">
             <ul id="pagination-ul">
                 <li id="first">Первая</li>
@@ -167,16 +177,20 @@
                 <li id="last">Последняя</li>
             </ul>
         </div>
+
     </div>
 
 {% endblock %}
 
+
+<!-- JS SCRIPTS -->
 
 {% block underscripts %}
 
 <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
 <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
 <script src="{% static 'js/tools/sorting.js' %}"></script>
+
 
 
 {% endblock %}

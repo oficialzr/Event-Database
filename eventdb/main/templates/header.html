@@ -10,11 +10,11 @@
         </div>
         {% if user.is_authenticated %}
         <ul>
-            <li><a style="font-weight: 800;">{{ request.user.first_name|add:' '|add:request.user.last_name }}</a></li>
+            <li><a style="font-weight: 800;">{{ request.user.last_name|add:' '|add:request.user.first_name }}</a></li>
             <li>
                 <ul>
                     <li class="view-list">
-                        <a id="view" href="#">Просмотр <span id="arrow-header">▼</span></a>
+                        <a id="view" href="#">Просмотр <span class="material-symbols-outlined">expand_more</span></a>
                         <ul id="list-values" class="header-list">
                             <li><a href="/events">События</a></li>
                             <li><a href="/persons">Лица</a></li>
@@ -26,7 +26,7 @@
             <li>
                 <ul>
                     <li class="view-list">
-                        <a id="view-edit" href="#">Ввод данных <span id="arrow-header">▼</span></a>
+                        <a id="view-edit" href="#">Ввод данных <span class="material-symbols-outlined">expand_more</span></a>
                         <ul id="list-values-edit" class="header-list">
                            <li><a href="/add-event">Событие</a></li>
                            <li><a href="/add-person">Лицо</a></li>

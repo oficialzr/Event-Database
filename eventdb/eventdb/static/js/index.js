@@ -5,11 +5,7 @@ listView.addEventListener('click', openViewList)
 
 function openViewList() {
     const list = document.getElementById('list-values')
-    if (list.style.display === 'block') {
-        list.style.display = 'none'
-    } else {
-        list.style.display = 'block'
-    }
+    $(list).toggle()
 }
 
 const listViewEdit = document.getElementById('view-edit')
@@ -17,11 +13,7 @@ listViewEdit.addEventListener('click', openViewListEdit)
 
 function openViewListEdit() {
     const list = document.getElementById('list-values-edit')
-    if (list.style.display === 'block') {
-        list.style.display = 'none'
-    } else {
-        list.style.display = 'block'
-    }
+    $(list).toggle()
 }
 
 

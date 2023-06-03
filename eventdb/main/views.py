@@ -1,6 +1,12 @@
 import datetime
 import json
+import os 
+import random
 
+from openpyxl.workbook import Workbook
+from openpyxl.styles import Font
+
+from django import utils
 from django.core import serializers
 from django.shortcuts import render, redirect, get_object_or_404, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
@@ -12,7 +18,10 @@ from django.core.files.storage import FileSystemStorage
 from django.http import JsonResponse
 
 from .models import Event, Person, RelatedPerson, AdressesPlacesOfBirth, AdressesPlacesOfLive, AdressesPlacesOfWork, OtherAdresses, Changes, ChangesEvent, FilesPerson, FilesEvent
-from .forms import PersonForm, EventForm, AdressBirthForm, AdressForm, FilterPersonForm, FilterEventForm
+from .models import Entity, Division, Filial, Representation
+from .models import Logging, LoggingUser
+from .forms import PersonForm, EventForm, AdressBirthForm, AdressWorkForm, FilterPersonForm, FilterEventForm, AdressLiveForm, AdressOtherForm
+from .forms import EMPTY_VALUE
 
 # Views for view data
 
@@ -28,6 +37,7 @@ def loginView(request):
         user = authenticate(username=username, password=password)
         if user is not None:
             login(request, user)
+            LoggingUser(author=user.last_name+' '+user.first_name, type='Вход').save()
             return JsonResponse(data={'status': 200})
         else:
             warning = 'Введен неправильный логин или пароль!'
@@ -35,6 +45,7 @@ def loginView(request):
     return render(request, 'login.html')
 
 def logoutView(request):
+    LoggingUser(author=request.user.last_name+' '+request.user.first_name, type='Выход').save()
     logout(request)
     return redirect('/login')
 
@@ -51,7 +62,7 @@ def eventsView(request):
     events = Event.objects.order_by('-id')
 
     for i, j in request.GET.items():
-        if i in ('filial', 'division', 'type'):
+        if i in ('filial', 'division', 'type', 'entity'):
             if j:
                 events = events.filter(**{i: j})
         if i == 'search_input':
@@ -73,34 +84,31 @@ def eventsView(request):
 @login_required
 def personsView(request):
     form = FilterPersonForm(request.GET)
+    print(request.GET)
     persons = Person.objects.order_by('-id')
     if 'role' in request.GET:
         if request.GET['role']:
             persons = list(set(get_object_or_404(Person, id=i.id_person) for i in RelatedPerson.objects.filter(role=request.GET['role'])))
     for i, j in request.GET.items():
+        if not j:
+            continue
         if i == 'role':
             continue
-        if i in ('sex', 'filial', 'entity'):
+        elif i in ('sex', 'entity', 'division', 'filial', 'representation'):
             if i == 'sex':
-                if j:
-                    m = j
-                    persons = filter(lambda x: x.sex==m, persons)
-            elif i == 'filial':
-                if j:
-                    m = j
-                    persons = filter(lambda x: AdressesPlacesOfWork.objects.filter(id_place_of_work=x.id, locality=m), persons)
-            elif i == 'entity':
-                if j:
-                    m = j
-                    persons = filter(lambda x: AdressesPlacesOfWork.objects.filter(id_place_of_work=x.id, entity=m), persons)
+                m = j
+                persons = filter(lambda x: x.sex==m, persons)
+            else:
+                m = j
+                filters = {i: m}
+                persons = filter(lambda x: AdressesPlacesOfWork.objects.filter(id_place_of_work=x.id, **filters), persons)
         if i == 'search_input':
-            if j:
-                m = j.split()
-                persons_new = []
-                for person in persons:
-                    if all(x.lower() in person.fio.lower() for x in m):
-                        persons_new.append(person)
-                persons = persons_new
+            m = j.split()
+            persons_new = []
+            for person in persons:
+                if all(x.lower() in person.fio.lower() for x in m):
+                    persons_new.append(person)
+            persons = persons_new
     
     return render(request, 'home.html', {'person': persons, 
                                         'name_number': 'Лица', 
@@ -119,28 +127,17 @@ def addEvent(request):
         form = EventForm(data=request.POST)
         if form.is_valid():
             user = User.objects.get(username=request.user)
-            author = user.first_name + ' ' + user.last_name
-            date_incedent = form.cleaned_data['date_incedent']
-            type = form.cleaned_data['type']
-            division = form.cleaned_data['division']
-            filial = form.cleaned_data['filial']
-            representation = form.cleaned_data['representation']
-            entity = form.cleaned_data['entity']
-            description = form.cleaned_data['description']
-            way = form.cleaned_data['way']
-            instrument = form.cleaned_data['instrument']
-            relation = form.cleaned_data['relation']
-            object = form.cleaned_data['object']
-            place = form.cleaned_data['place']
-            value = Event(date_incedent=date_incedent, type=type, author=author, division=division, filial=filial, representation=representation, entity=entity, description=description, way=way, instrument=instrument, relation=relation, object=object, place=place)
+            author = user.last_name + ' ' + user.first_name
+            value = form.save(commit=False)
+            value.author = author
             value.save()
-            request.session['event_id'] = value.id
+
+            Logging(author=author, type='Создание события', logged_event='{} создал запись события {}'.format(author, value.id)).save()
+
             return redirect('/event/'+str(value.id))
     else:
         form = EventForm()
-        form_person = PersonForm()
     return render(request, 'add-event.html', {'form': form,
-                                              'form_person': form_person,
                                               'header': header,
                                               'events': 1})
 
@@ -149,6 +146,7 @@ def addEvent(request):
 def addPerson(request, redirected=None):
     header = 'Заполните данные о человеке'
     if request.method == 'POST':
+        author = request.user.last_name + ' ' + request.user.first_name
         if 'data' in request.POST:
             try:
                 fio, birthday = request.POST['data'].split(' | ')
@@ -164,30 +162,30 @@ def addPerson(request, redirected=None):
                     related.save()
                     person.save()
 
+                    Logging(author=author, type='Создание отношения', logged_event='{} создал запись отношения к событиям {}:\nЛицо с ID {} теперь {}'.format(author, related.id, person.id, role)).save()
+
                     return JsonResponse({'status': '200'})
             except Exception as e:
                 return JsonResponse({'status': '404'})
         else:
             form = PersonForm(data=request.POST)
             if form.is_valid():
-                user = User.objects.get(username=request.user)
-                author = user.first_name + ' ' + user.last_name
-                first_name = form.cleaned_data['first_name']
-                last_name = form.cleaned_data['last_name']
-                second_name = form.cleaned_data['second_name']
-                description = form.cleaned_data['description']
-                sex = form.cleaned_data['sex']
+                fio_p = form.cleaned_data['last_name'] + ' ' + form.cleaned_data['first_name'] + ' ' + form.cleaned_data['second_name']
                 birthday = form.cleaned_data['birthday']
-                
-                try:
-                    a = Person.objects.get(fio=last_name + ' ' + first_name + ' ' + second_name, birthday=birthday)
-                    if a:
-                        return JsonResponse(data={'message': 'Такой человек уже существует!'})
-                except:
-                    pass
 
-                value = Person(fio=last_name+' '+first_name+' '+second_name, last_name=last_name, first_name=first_name, second_name=second_name, description=description, sex=sex, birthday=birthday, author=author)
+                try:
+                    if Person.objects.get(fio=fio_p, birthday=birthday):
+                        return JsonResponse(data={'message': 'Такой человек уже существует!'})
+                except Exception as e:
+                    print(e)
+
+                value = form.save(commit=False)
+                value.author = author
+                value.fio = fio_p
                 value.save()
+
+                Logging(author=author, type='Создание лица', logged_event='{} создал запись лица {}'.format(author, value.id)).save()
+
                 if 'redirected' in request.POST:
                     return JsonResponse({'redirect': '200'})
                 else:
@@ -204,6 +202,27 @@ def addPerson(request, redirected=None):
 
 
 @login_required
+def set_adaptive(request):
+    if 'name' in request.GET:
+        gets = request.GET
+        if gets['value'] == '':
+            return JsonResponse(data={'data': '500'}) 
+        if gets['name'] == 'entity':
+            a = [i.name for i in Division.objects.filter(id_entity=Entity.objects.get(name=gets['value']))]
+            return JsonResponse(data={'data': a})
+        elif gets['name'] == 'division':
+            a = [i.name for i in Filial.objects.filter(id_division=Division.objects.get(name=gets['value']))]
+            return JsonResponse(data={'data': a})
+        elif gets['name'] == 'filial':
+            a = [i.name for i in Representation.objects.filter(id_filial=Filial.objects.get(name=gets['value']))]
+            return JsonResponse(data={'data': a})
+        else:
+            return JsonResponse(data={'status': '500'})
+    else:
+        return redirect(request, 'home')
+
+
+@login_required
 def add_person_with_redirect(request):
     return addPerson(request, True)
 
@@ -211,60 +230,67 @@ def add_person_with_redirect(request):
 @login_required
 def addAdress(request, person_id):
     if request.method == 'POST':
-        if 'adress' in request.POST:
-            form = AdressBirthForm(data=request.POST)
-        else:
-            form = AdressForm(data=request.POST)
         role = request.POST['role']
-        print(role)
+        user = User.objects.get(username=request.user)
+        author = user.first_name + ' ' + user.last_name
+        person = Person.objects.get(id=person_id)
+
+        if role == '1':
+            form = AdressBirthForm(data=request.POST)
+        elif role == '2':
+            form = AdressWorkForm(data=request.POST)
+        elif role == '3':
+            form = AdressLiveForm(data=request.POST)
+        else:
+            form = AdressOtherForm(data=request.POST)
         if form.is_valid():
+            value = form.save(commit=False)
+            value.who_added = author
+
             if role == '1':
-                adress = form.cleaned_data['adress']
-                country = form.cleaned_data['country']
-                region = form.cleaned_data['region']
-
-                value = AdressesPlacesOfBirth(country=country, region=region, adress=adress, id_place_of_birth=Person(id=person_id), who_added=request.user.last_name+' '+request.user.first_name)
-            else:
-                description = form.cleaned_data['description']
-                country = form.cleaned_data['country']
-                region = form.cleaned_data['region']
-                area = form.cleaned_data['area']
-                locality = form.cleaned_data['locality']
-                street = form.cleaned_data['street']
-                house = form.cleaned_data['house']
-                frame = form.cleaned_data['frame']
-                apartment = form.cleaned_data['apartment']
-
-                entity = form.cleaned_data['entity']
-                if role == '2':
-                    value = AdressesPlacesOfWork(id_place_of_work=Person(id=person_id), country=country, region=region, area=area, locality=locality, street=street, house=house, frame=frame, apartment=apartment, who_added=request.user.last_name+' '+request.user.first_name, entity=entity)
-                elif role == '3':
-                    value = AdressesPlacesOfLive(id_place_of_live=Person(id=person_id), country=country, region=region, area=area, locality=locality, street=street, house=house, frame=frame, apartment=apartment, who_added=request.user.last_name+' '+request.user.first_name)
-                elif role == '4':
-                    value = OtherAdresses(id_other_places=Person(id=person_id), description=description, country=country, region=region, area=area, locality=locality, street=street, house=house, frame=frame, apartment=apartment, who_added=request.user.last_name+' '+request.user.first_name)
-
+                value.id_place_of_birth = person
+                header = 'Место рождения'
+            elif role == '2':
+                value.id_place_of_work = person
+                header = 'Место работы'
+            elif role == '3':
+                value.id_place_of_live = person
+                header = 'Адрес регистрации'
+            elif role == '4':
+                value.id_other_places = person
+                header = 'Другой адрес'
+                
             value.save()
-        return JsonResponse(data={'status': 200, 'data': serializers.serialize('json', [value])})
+            data = {i[0]: i[1] for i in [k for k in value.__iter__()][2:-1]}
+
+        Logging(author=author, type='Создание адреса', logged_event='{} создал запись {} с ID: {}'.format(author, header, value.id)).save()
+
+        return JsonResponse(data={'status': 200, 'data': data, 'header': header})
     else:
-        form_adress = AdressForm()
+        form_other = AdressOtherForm()
+        form_live = AdressLiveForm()
         form_birth = AdressBirthForm()
+        form_work = AdressWorkForm()
 
 
     return render(request, 'add-adress.html', {
-        'form_adress': form_adress,
+        'form_live': form_live,
+        'form_other': form_other,
         'form_birth': form_birth,
+        'form_work': form_work,
         'person_id': person_id
     })
 
 
 @login_required
 def add_person_on_event(request, id):
-    form = PersonForm()
-    return render(request, 'add-person-on-event.html', {'form_person': form,
-                                                        'event_id': id}) 
-
-
-
+    if request.user.is_superuser or (request.user.last_name+' '+request.user.first_name == Event.objects.get(id=id).author):
+        form = PersonForm()
+        return render(request, 'add-person-on-event.html', {'form_person': form,
+                                                            'event_id': id})
+    else:
+        return redirect('home')
+   
 
 
 
@@ -272,6 +298,8 @@ def add_person_on_event(request, id):
 
 @login_required
 def edit_person(request, id_person):
+    if not request.user.is_superuser and not (request.user.last_name+' '+request.user.first_name == Person.objects.get(id=id_person).author):
+        return redirect('home')
     if request.method == 'POST':
         desc = request.POST.get('description')
         person = get_object_or_404(Person, id=id_person)
@@ -279,8 +307,12 @@ def edit_person(request, id_person):
         change_value.save()
 
         person.description = desc
+        person.add_at = utils.timezone.now()
+
         person.save()
 
+        author = request.user.last_name+' '+request.user.first_name
+        Logging(author=author, type='Изменение лица', logged_event='{} изменил запись лица {}'.format(author, person.id)).save()
 
         return redirect(f'/person/{id_person}')
     else:
@@ -294,7 +326,12 @@ def edit_person(request, id_person):
 
 @login_required
 def edit_event(request, id_event):
+    if not request.user.is_superuser and not (request.user.last_name+' '+request.user.first_name == Event.objects.get(id=id_event).author):
+        return redirect('home')
     if request.method == 'POST':
+
+        author = request.user.last_name+' '+request.user.first_name
+
         edit_from = json.dumps(model_to_dict(Event.objects.get(id=id_event)), ensure_ascii=False, default=str)
         event = get_object_or_404(Event, id=id_event)
         description = request.POST['description']
@@ -319,6 +356,7 @@ def edit_event(request, id_event):
             change_value = ChangesEvent(id_user=request.user.id, edit_from=edit_from, edit_to=edit_to, id_record=id_event, record_name='Событие')
             change_value.save()
 
+        Logging(author=author, type='Изменение события', logged_event='{} изменил запись события {}'.format(author, event.id)).save()
 
         return redirect(f'/event/{id_event}')
     else:
@@ -376,8 +414,11 @@ def eventView(request, event_id):
         return redirect('../event/{}'.format(event_id))
     
     files = FilesEvent.objects.filter(event_id=event_id)
+
     event = Event.objects.get(id=event_id)
     persons = RelatedPerson.objects.filter(id_event=event_id)
+    author = request.user.last_name + ' ' + request.user.first_name
+
     injureds = [Person.objects.get(id=i.id_person) for i in persons if i.role == 'Потерпевший']
     witnesses = [Person.objects.get(id=i.id_person) for i in persons if i.role == 'Свидетель']
     intruders = [Person.objects.get(id=i.id_person) for i in persons if i.role == 'Нарушитель']
@@ -398,7 +439,8 @@ def eventView(request, event_id):
                                           'persons_list': persons_list,
                                           'event_id': event_id,
                                           'changes': changes,
-                                          'files': files})
+                                          'files': files,
+                                          'author': author})
 
 @login_required
 def personView(request, person_id):
@@ -418,10 +460,14 @@ def personView(request, person_id):
         person.save()
         return redirect('../person/{}'.format(person_id))
 
+    author = request.user.last_name + ' ' + request.user.first_name
+
     person = Person.objects.get(id=person_id)
+
     image = person.person_image
     files = FilesPerson.objects.filter(person_id=person_id)
     events = RelatedPerson.objects.filter(id_person=person_id)
+
     try:
         places_of_birth = AdressesPlacesOfBirth.objects.filter(id_place_of_birth=person.id)
         places_of_work = AdressesPlacesOfWork.objects.filter(id_place_of_work=person.id)
@@ -449,20 +495,146 @@ def personView(request, person_id):
                                                 'places': places,
                                                 'changes': changes,
                                                 'image': image,
-                                                'files': files})
+                                                'files': files,
+                                                'author': author})
 
 
 @login_required
 def changeView(request, change_id):
-    change = get_object_or_404(ChangesEvent, id=change_id)
-    change_from = json.loads(change.edit_from).items
-    change_to = json.loads(change.edit_to).items
-    return render(request, 'change-page.html', {'change_from': change_from,
-                                                'change_to': change_to})
+    if request.user.is_superuser:
+        change = get_object_or_404(ChangesEvent, id=change_id)
+        change_from = json.loads(change.edit_from).items
+        change_to = json.loads(change.edit_to).items
+        return render(request, 'change-page.html', {'change_from': change_from,
+                                                    'change_to': change_to})
+    else:
+        return redirect('home')
 
 
+# REPORT
+
+def create_report(request):
+    event_form = FilterEventForm()
+    person_form = FilterPersonForm()
+    return render(request, 'create-report.html', {
+        'event_form': event_form,
+        'person_form': person_form,
+    })
+
+    # author = request.user.last_name + ' ' + request.user.first_name
+
+    # def counting_by(by:str, num:int, name:str, rule=None):
+    #     ws['B'+str(num)] = 'Количество событий по {}'.format(name)
+    #     ws['B'+str(num)].font = Font(bold=True)
+    #     if rule == 'work':
+    #         value = Event.objects.all().values_list(by, flat=True).distinct()
+    #     num += 1
+
+    #     for i in value:
+    #         ws['B'+str(num)] = i
+    #         ws['C'+str(num)] = value.filter(**{by: i}).count()
+    #         num += 1
+    #     return num
+
+    # start = datetime.datetime.strptime(request.GET['start'], '%Y-%m-%d').date()
+    # end_real = datetime.datetime.strptime(request.GET['end'], '%Y-%m-%d').date()
+    # end = datetime.datetime.strptime(request.GET['end'], '%Y-%m-%d').date() + datetime.timedelta(days=1)
+
+    # flag = False
+    # if 'sex' in request.GET:
+    #     sex = request.GET['sex']
+    #     role = request.GET['role']
+    #     flag = True
+    # entity = request.GET['entity']
+    # division = request.GET['division']
+    # filial = request.GET['filial']
+
+    # if not flag:
+    #     events = Event.objects.filter(date_incedent__range=(start, end), entity__icontains=entity, division__icontains=division, filial__icontains=filial)
+    # else:
+    #     events = Person.objects.filter(sex__icontains=sex, add_at__range=(start, end))
+    #     rel = RelatedPerson.objects.filter(role__icontains=role)
+    #     ent = AdressesPlacesOfWork.objects.filter(entity__icontains=entity)
+    #     ent = ent.filter(locality__icontains=filial)
+    #     # ent = ent.filter(filial__icontains=filial)
+    #     id_person = [int(i) for i in rel.values_list('id_person', flat=True).distinct()]
+    #     id_place = [int(i) for i in ent.values_list('id_place_of_work', flat=True).distinct()]
+    #     events = events.filter(id__in=id_person)
+    #     events = events.filter(id__in=id_place)
+
+    # if not events:
+    #     return JsonResponse(data={'status': '500'})
+    
+    # start_rus = start.strftime('%d.%m.%Y')
+    # end_rus = end_real.strftime('%d.%m.%Y')
+
+    # wb = Workbook()
+    # ws = wb.active
+    # ws.column_dimensions['B'].width = 50
+    # num = 2
 
 
+    # # Title
+    # ws['B'+str(num)] = 'Отчет за период: ' +  start_rus + ' - ' + end_rus
+
+
+    # # Main count
+    # num += 2
+    # ws['B'+str(num)] = 'Общее количество событий:'
+    # ws['B'+str(num)].font = Font(bold=True)
+    # ws['C'+str(num)] = len(events)
+    # num += 2
+
+    # # Count by entity
+    # if entity == '' and division == '' and filial == '':
+    #     num = counting_by('entity', num, 'юридическим лицам', 'work')
+
+    # num += 1
+
+    # # Count by division
+    # if division == '' and filial == '':
+    #     num = counting_by('division', num, 'дивизионам', 'work')
+
+    # num += 1
+
+    # # Count by filials
+    # if filial == '':
+    #     num = counting_by('filial', num, 'филиалам', 'work')
+
+    # # Count by type
+    
+
+    # if not flag:
+    #     type = 'События'
+    # else:
+    #     type = 'Лица'
+
+    # if not flag:
+    #     num += 1
+    #     ws['B'+str(num)] = 'Количество событий по виду'
+    #     ws['B'+str(num)].font = Font(bold=True)
+    #     types = events.values_list('type', flat=True).distinct()
+    #     num += 1
+    #     for i in types:
+    #         ws['B'+str(num)] = i
+    #         ws['C'+str(num)] = events.filter(type=i).count()
+    #         num += 1
+
+    # if author not in os.listdir(path='reports/'):
+    #     os.mkdir(path='reports/' + author)
+    #     os.mkdir(path='reports/{}/События'.format(author))
+    #     os.mkdir(path='reports/{}/Лица'.format(author))
+    
+    # wb.save('reports/' + '{}/'.format(request.user.last_name + ' ' + request.user.first_name) + '{}/'.format(type) + 'Отчет по событиям ' + start_rus + ' - ' + end_rus + '.xlsx')
+
+
+    # return JsonResponse(data={'status': 200})
+
+
+# HANDLING ERRORS
+
+def handling_404(request, exceptions):
+    return render(request, '404.html')
 
 
 # tests
@@ -478,3 +650,23 @@ def testJson(request, event_id):
         data['persons'].append(data)
     
     return JsonResponse(data=data, json_dumps_params={'ensure_ascii': False}, content_type='application/json; charset=utf-8')
+
+def create_random():
+    a = ['Хакимов', 'Ананьев', 'Гринцов', 'Рамтышев', 'Ватутин', 'Коломеец']
+    b = ['Виктор', 'Александр', 'Степан', 'Владимир', 'Антон', 'Владислав']
+    c = ['Константинович', 'Владимирович', 'Алексеевич', 'Степанович', 'Александрович', 'Викторович']
+    day = [i for i in range(1, 28)]
+    month = [i for i in range(1, 13)]
+    year = [i for i in range(1980, 2003)]
+
+
+    for olt in range(100):
+        try:
+            f = random.choice(a)
+            n = random.choice(b)
+            o = random.choice(c)
+            value = Person(fio=f+' '+n+' '+o, first_name=n, last_name=f, second_name=o, description='-', sex='м', birthday=datetime.date(random.choice(year), random.choice(month), random.choice(day)), author='Хакимов Виктор')
+            value.save()
+        except Exception as e:
+            print(e)
+            continue

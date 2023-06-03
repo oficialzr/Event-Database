@@ -4,21 +4,9 @@ $(function() {
 
     counter = $('#counter')
     updateCounter()
-    
-    function updateCounter(count=null) {
-        if (count) {
-            counter.text(count)
-            return
-        }
-        const currentData = $('tr:visible:not(.header-table)').length
-        counter.text(currentData)
-    }
 
 
     // PAGINATE
-
-
-
 
     function paginate() {
         let current_page = 1
@@ -138,6 +126,146 @@ $(function() {
     const dataList = tbody.find('tr')
 
     document.getElementById('sortId').addEventListener('change', sortIt)
+    
+
+
+
+    // FILTER
+
+    
+    let filterContent = Array.from(document.getElementById('filter').querySelectorAll('select'))
+
+    if (document.getElementById('filter-person')) {
+        filterContent = filterContent.slice(2)
+    } else {
+        filterContent = filterContent.slice(1)
+    }
+
+    filterContent.forEach((value)=>{
+        if (!['entity', 'type', 'sex', 'role'].includes(value.name)) {
+            if (value.parentElement.previousElementSibling.lastElementChild.value != '') {
+
+            } else {
+                value.disabled = true
+            }
+        }
+        
+        value.addEventListener('change', (e)=>{
+            const name = e.target.name
+            const value = e.target.value
+
+            key = e.target
+
+            for (i of filterContent.slice(filterContent.indexOf(key))) {
+                if (key.parentElement.nextElementSibling.lastElementChild.type == 'select-one') {
+                    key.parentElement.nextElementSibling.lastElementChild.disabled = true
+                    key.parentElement.nextElementSibling.lastElementChild.value = ''
+                    key = i
+                }
+            }
+            selectRight(e.target, name, value)
+        });
+        selectRight(value, value.name, value.value)
+    })
+
+    document.getElementById('filter-delete').addEventListener('click', (event)=>{
+        for (i of document.getElementsByClassName('filter-content')[0].querySelectorAll('select')) {
+            i.selectedIndex = 0
+        };
+        document.getElementById('id_search_input').value = ''
+    })
+
+
+    const data_all = $('tr:not(.header-table)');
+    const inputSearch = document.getElementById('id_search_input')
+    const delSpan = document.getElementById('delete-search');
+    const srchBtn = document.getElementById('search-button-person')
+
+    $(inputSearch).on('keypress', (i)=>{
+        if (i.which == 13) {
+            srchBtn.dispatchEvent(new Event('click'))
+        }
+    })
+
+    if (inputSearch.value != '') {
+        delSpan.style.display = 'block'
+    }
+
+    // SEARCH
+
+    delSpan.addEventListener('click', ()=>{
+        inputSearch.value = ''
+        $(delSpan).toggle()
+    });
+
+    inputSearch.addEventListener('input', (value)=>{
+        if (value.target.value != '') {
+            delSpan.style.display = 'block'
+        } else {
+            delSpan.style.display = 'none'
+        }
+    })
+
+    let c = ''
+
+    if (document.getElementById('add-person')) {
+        c = 'fio'
+    } else {
+        c = 'desc'
+    }
+
+    srchBtn.addEventListener('click', (e)=>{
+        p = inputSearch.value.split(' ')
+        for (i of data_all) {
+            $(i).show()
+        }
+        for (i of data_all) {
+            for (m of p) {
+                if ($(i.querySelector(`#${c}`)).text().toLowerCase().includes(m.toLowerCase())) {
+
+                } else {
+                    $(i).hide()
+                    break
+                }
+            }
+        }
+        updateCounter()
+    })
+
+
+    // FUNCTIONS
+
+
+    function showAllData() {
+        for (line of data_all) {
+            $(line).show()
+        }
+    }
+
+    function selectRight(e, name, value) {
+        $.get('../set-adaptive', {'name': name, 'value': value}, function(data){
+            if (e.parentElement.nextElementSibling.lastElementChild.type == 'select-one') {
+                if (data['data'] == '500') {
+                    e.parentElement.nextElementSibling.lastElementChild.disabled = true
+                } else {
+                    e.parentElement.nextElementSibling.lastElementChild.disabled = false
+                }
+            }
+            try {
+                key = e.parentElement.nextElementSibling.lastElementChild;
+                for (i of Array.from(key.children).slice(1)) {
+                    if (data['data'].includes(i.value)) {
+                        $(i).show()
+                    } else {
+                        $(i).hide()
+                    }
+                }
+            } catch (error) {
+                
+            }
+        })
+    }
+
     function sortIt() {
         header = document.getElementsByClassName('header-page')[0].textContent
 
@@ -164,18 +292,18 @@ $(function() {
         } else if (sort == 'byDateUp') {
             if (header == 'События') {
                 showAllData()
-                sortByDate(true, 1)
-            } else {
-                showAllData()
-                sortByDate(true)
-            }
-        } else if (sort == 'byDateDown') {
-            if (header == 'События') {
-                showAllData()
                 sortByDate(false, 1)
             } else {
                 showAllData()
                 sortByDate(false)
+            }
+        } else if (sort == 'byDateDown') {
+            if (header == 'События') {
+                showAllData()
+                sortByDate(true, 1)
+            } else {
+                showAllData()
+                sortByDate(true)
             }
         } else {
             showAllData()
@@ -234,49 +362,13 @@ $(function() {
         });
     }
 
-
-
-    // FILTER
-    document.getElementById('filter-delete').addEventListener('click', (event)=>{
-        for (i of document.getElementsByClassName('filter-content')[0].querySelectorAll('select')) {
-            i.selectedIndex = 0
-        };
-        document.getElementById('id_search_input').value = ''
-    })
-
-
-    const data_all = $('tr:not(.header-table)');
-    const inputSearch = document.getElementById('id_search_input')
-    const delSpan = document.getElementById('delete-search');
-
-    if (inputSearch.value != '') {
-        delSpan.style.display = 'block'
-    }
-
-    document.getElementById('filter-button').addEventListener('click', ()=>{
-        const filterContent = document.getElementById('filter')
-        $(filterContent).toggle()
-    });
-
-
-    
-    delSpan.addEventListener('click', ()=>{
-        inputSearch.value = ''
-    });
-
-    inputSearch.addEventListener('input', (value)=>{
-        if (value.target.value != '') {
-            delSpan.style.display = 'block'
-        } else {
-            delSpan.style.display = 'none'
+    function updateCounter(count=null) {
+        if (count) {
+            counter.text(count)
+            return
         }
-    })
-
-
-    function showAllData() {
-        for (line of data_all) {
-            $(line).show()
-        }
+        const currentData = $('tr:visible:not(.header-table)').length
+        counter.text(currentData)
     }
 
 }());

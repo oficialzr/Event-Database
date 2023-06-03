@@ -22,18 +22,18 @@ def get_upload_path_file_event(instance, filename):
 
 class Event(models.Model):
     id = models.AutoField(primary_key=True, verbose_name='№ п.п.')
+    type = models.CharField(max_length=100, verbose_name='Вид события')
     date_incedent = models.DateTimeField(verbose_name='Дата проишествия')
 
-    author = models.CharField(max_length=100, verbose_name='ФИО автора')
-
+    author = models.CharField(max_length=100, verbose_name='Автор')
     change_date = models.DateTimeField(auto_now=True, verbose_name='Дата изменения')
-    division = models.CharField(max_length=100, verbose_name='Дивизион')
-    filial = models.CharField(max_length=200, verbose_name='Филиал')
-    representation = models.CharField(verbose_name='Представительство')
-    entity = models.CharField(verbose_name='Юридическое лицо')
+
+    entity = models.CharField(verbose_name='Юридическое лицо', blank=True, null=True, default='-')
+    division = models.CharField(max_length=100, verbose_name='Дивизион', blank=True, null=True, default='-')
+    filial = models.CharField(max_length=200, verbose_name='Филиал', blank=True, null=True, default='-')
+    representation = models.CharField(verbose_name='Представительство', blank=True, null=True, default='-')
 
     description = models.TextField(verbose_name='Описание события')
-    type = models.CharField(max_length=100, verbose_name='Вид события')
     way = models.CharField(verbose_name='Способ проникновения', max_length=40)
     instrument = models.CharField(verbose_name='Средство совершения', max_length=100)
     relation = models.CharField(max_length=100, verbose_name='В отношении')
@@ -56,6 +56,8 @@ class Event(models.Model):
     def __str__(self):
 	    return 'ID события: ' + str(self.id) + ' | Дата: ' + str(self.date_incedent)
     
+
+    
 class RelatedPerson(models.Model):
     id_event = models.IntegerField(verbose_name='Номер события')
     role = models.CharField(verbose_name='Роль:')
@@ -75,6 +77,9 @@ class RelatedPerson(models.Model):
 
 
 class Person(models.Model):
+    def __init__(self, *args, **kwargs):
+        super(Person, self).__init__(*args, **kwargs)
+        self.fio = self.last_name + ' ' + self.first_name + ' ' + self.second_name
     id = models.AutoField(primary_key=True, verbose_name='ID лица')
     add_at = models.DateTimeField(default=utils.timezone.now, editable=False)
 
@@ -128,15 +133,10 @@ class AdressesPlacesOfWork(models.Model):
     id_place_of_work = models.ForeignKey(Person, on_delete=models.CASCADE, to_field='id')
 
     entity = models.CharField(verbose_name='Юридическое лицо', blank=False, default='-')
+    division = models.CharField(max_length=100, verbose_name='Дивизион')
+    filial = models.CharField(max_length=200, verbose_name='Филиал')
+    representation = models.CharField(verbose_name='Представительство')
 
-    country = models.CharField(verbose_name='Страна', blank=True)
-    region = models.CharField(verbose_name='Область', blank=True)
-    area = models.CharField(verbose_name='Район', blank=True)
-    locality = models.CharField(verbose_name='Населенный пункт', blank=True)
-    street = models.CharField(verbose_name='Улица', blank=True)
-    house = models.CharField(verbose_name='Дом', blank=True)
-    frame = models.CharField(verbose_name='Корпус', blank=True)
-    apartment = models.CharField(verbose_name='Квартира', blank=True)
     who_added = models.CharField(verbose_name='Добавил:', blank=False, default='-')
 
     class Meta:
@@ -145,7 +145,7 @@ class AdressesPlacesOfWork(models.Model):
         
     def __iter__(self):
         for field in self._meta.fields:
-             yield (field.verbose_name,  field.value_to_string(self))
+            yield (field.verbose_name,  field.value_to_string(self))
 
     def __str__(self):
 	    return 'ID места работы: ' + str(self.id)
@@ -175,7 +175,7 @@ class AdressesPlacesOfLive(models.Model):
 
 class OtherAdresses(models.Model):
     id_other_places = models.ForeignKey(Person, on_delete=models.CASCADE, to_field='id')
-    description = models.TextField(verbose_name='Описание адреса', blank=True)
+    description = models.CharField(verbose_name='Описание адреса', blank=True)
     country = models.CharField(verbose_name='Страна', blank=True)
     region = models.CharField(verbose_name='Область', blank=True)
     area = models.CharField(verbose_name='Район', blank=True)
@@ -203,7 +203,7 @@ class Changes(models.Model):
     
     record_name = models.CharField(verbose_name='Тип записи:')
     id_record = models.IntegerField(verbose_name='ID записи:')
-    time_change = models.DateTimeField(verbose_name='Изменено в:', auto_now_add=utils.timezone.now)
+    time_change = models.DateTimeField(verbose_name='Изменено в:', auto_now=utils.timezone.now)
     edit_from = models.CharField(verbose_name='Изменено с:', blank=True)
     edit_to = models.CharField(verbose_name='Изменено на:', blank=True)
     type_edit = models.CharField(verbose_name='Поле изменения:')
@@ -284,3 +284,71 @@ class FilesEvent(models.Model):
 
     def __str__(self):
         return 'Событие: ' + str(self.event_id) + '| Файл: ' + str(self.filename)
+    
+
+class Entity(models.Model):
+    id_entity = models.AutoField(primary_key=True, verbose_name='ID юридического лица')
+    name = models.CharField(verbose_name='Юридическое лицо')
+
+    class Meta:
+        verbose_name = 'Юридическое лицо'
+        verbose_name_plural = 'БИБИЛИОТЕКА: Юридические лица'
+
+    def __str__(self):
+        return 'ID: ' + str(self.id_entity) + ' | ' + self.name
+
+class Division(models.Model):
+    id_entity = models.ForeignKey(Entity, on_delete=models.CASCADE, to_field='id_entity')
+    id_division = models.AutoField(verbose_name='ID дивизиона', primary_key=True)
+    name = models.CharField(verbose_name='Дивизион')
+
+    class Meta:
+        verbose_name = 'Дивизион'
+        verbose_name_plural = 'БИБИЛИОТЕКА: Дивизионы'
+
+    def __str__(self):
+        return 'ID: ' + str(self.id_division) + ' | ' + self.name
+
+class Filial(models.Model):
+    id_division = models.ForeignKey(Division, on_delete=models.CASCADE, to_field='id_division')
+    id_filial = models.AutoField(verbose_name='ID филиала', primary_key=True)
+    name = models.CharField(verbose_name='Филиал')
+
+    class Meta:
+        verbose_name = 'Филиал'
+        verbose_name_plural = 'БИБИЛИОТЕКА: Филиалы'
+
+    def __str__(self):
+        return 'ID: ' + str(self.id_filial) + ' | ' + self.name
+    
+class Representation(models.Model):
+    id_filial = models.ForeignKey(Filial, on_delete=models.CASCADE, to_field='id_filial')
+    id_rep = models.AutoField(verbose_name='ID представительства', primary_key=True)
+    name = models.CharField(verbose_name='Филиал')
+
+    class Meta:
+        verbose_name = 'Представительство'
+        verbose_name_plural = 'БИБИЛИОТЕКА: Представительства'
+
+    def __str__(self):
+        return 'ID: ' + str(self.id_rep) + ' | ' + self.name
+
+class Logging(models.Model):
+    author = models.CharField(verbose_name='Автор')
+    type = models.CharField(verbose_name='Тип', default='')
+    logged_event = models.TextField(verbose_name='Что сделал')
+    datetime = models.DateTimeField(auto_now=utils.timezone.now, verbose_name='Время')
+
+    class Meta:
+        verbose_name = 'Лог'
+        verbose_name_plural = 'ЛОГГИРОВАНИЕ: Логи'
+
+
+class LoggingUser(models.Model):
+    author = models.CharField(verbose_name='Автор')
+    type = models.CharField(verbose_name='Что сделал')
+    datetime = models.DateTimeField(auto_now=utils.timezone.now, verbose_name='Время')
+
+    class Meta:
+        verbose_name = 'Лог входа/выхода'
+        verbose_name_plural = 'ЛОГГИРОВАНИЕ: Логи входа/выхода'
