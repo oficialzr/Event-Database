@@ -17,6 +17,8 @@
 {% endblock %}
 
 {% block content %}
+<div hidden class="loading" id="loading">Loading&#8230;</div>
+
 <h1 id="head" class="header-page">{{ name }}</h1>
     <div class="main-content">
         <div class="header-main">
@@ -95,6 +97,15 @@
             <div class="res-search">
                 <h3>Найдено записей: <a id="counter"></a></h3>
                 <div class="search">
+                    <div id="datezone">
+                        Период:
+                        <input type="date" name="from_date" id="from_date">
+                        -
+                        <input type="date" name="to_date" id="to_date">
+                        <span class="date-ev material-symbols-outlined" id="check-date">check_circle</span>
+                        <span class="date-ev material-symbols-outlined" id="del-date">cancel</span>
+                        
+                    </div>
                     {% for i in form %}
                         {% if i.label == 'search' %}
                             {{i}}
@@ -122,7 +133,7 @@
                             <td>{{ line.last_name }}</td>
                             <td>{{ line.first_name }}</td>
                             <td>{{ line.second_name }}</td>
-                            <td>{{ line.birthday }}</td>
+                            <td id="date">{{ line.birthday|date:'d.m.Y' }}</td>
                             <td id="empty-col">
                                 <div>
                                     <a href="{% url 'person' line.id %}">Открыть<span class="material-symbols-outlined">open_in_new</span></a>
@@ -151,7 +162,7 @@
                         <td id="desc" hidden>{{ line.description }}</td>
                         <td hidden> {{ line.change_date|date:'Y-m-d' }} </td>
                         <td id="id">{{ line.id }}</td>
-                        <td id="date">{{ line.date_incedent }}</td>
+                        <td id="date">{{ line.date_incedent|date:'d.m.Y' }}</td>
                         <td id="type">{{ line.type }}</td>
                         <td id="division">{{ line.division }}</td>
                         <td id="filial">{{ line.filial }}</td>
@@ -171,16 +182,13 @@
 
         <div class="pagination">
             <ul id="pagination-ul">
-                <li id="first">Первая</li>
-                <li id="previous">Предыдущая</li>
-                <li id="next">Следующая</li>
-                <li id="last">Последняя</li>
             </ul>
         </div>
 
     </div>
 
 {% endblock %}
+
 
 
 <!-- JS SCRIPTS -->

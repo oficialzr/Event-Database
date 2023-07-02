@@ -84,7 +84,6 @@ def eventsView(request):
 @login_required
 def personsView(request):
     form = FilterPersonForm(request.GET)
-    print(request.GET)
     persons = Person.objects.order_by('-id')
     if 'role' in request.GET:
         if request.GET['role']:

@@ -9,116 +9,98 @@ $(function() {
     // PAGINATE
 
     function paginate() {
-        let current_page = 1
-        const count_data = 30
+        Array.from(document.querySelectorAll('#pagination-ul li')).forEach((e)=>{
+            e.removeEventListener('click', btE)
+        })
 
-        
-        if (document.getElementById('pages')) {
-            document.getElementById('pages').remove()
-        }
-        
-        let placeholder = document.getElementById('previous')
-        placeholder.insertAdjacentHTML('afterend', '<div id="pages"></div>')
-        placeholder = document.getElementById('pages')
-        
-        let table_paginate = $('tr:visible:not(.header-table)');
-        let main_count = table_paginate.length;
-        let main_count_pages = parseInt(main_count / 30) + 1
-        
-        updateCounter(main_count)
-        hide_page(0, main_count, table_paginate)
-        show_page(0, count_data, table_paginate)
-
-        for (i=main_count_pages; i!=0; i--) {
-            placeholder.insertAdjacentHTML('afterbegin', `<li name='number-page'><a>${i}</a></li>`)
-        }
-
-        document.getElementsByName('number-page').forEach(function(elem){
-            elem.addEventListener('click', ()=>{go_to_the_page(parseInt(elem.querySelector('a').textContent), table_paginate);})
-        });
-
-        const first = document.getElementById('first')
-        const previous = document.getElementById('previous')
-        const next = document.getElementById('next')
-        const last = document.getElementById('last')
-
-        first.addEventListener('click', ()=>go_to_the_page(1, table_paginate))
-        previous.addEventListener('click', ()=>go_to_the_page(current_page-1, table_paginate))
-        next.addEventListener('click', ()=>go_to_the_page(current_page+1, table_paginate))
-        last.addEventListener('click', ()=>go_to_the_page(main_count_pages, table_paginate))
-
-        colorize(1)
-        block_buttons(current_page)
-    
-        function colorize(page) {
-            pages = document.getElementsByName('number-page')
-            for (i of pages) {
-                if (i.textContent == page) {
-                    i.style.backgroundColor = 'gainsboro'
-                } else {
-                    i.style.backgroundColor = 'white'
-                }
+        a = document.getElementsByClassName('dgt')
+        if (a) {
+            for (i of Array.from(a)) {
+                i.remove()
             }
         }
+        
+        let crP = 0
+        const aD = $('tr:not(.header-table)')
+        const c = parseInt((aD.length - 1) / 30) + 1
+        const bP = document.getElementById('pagination-ul')
 
-        function go_to_the_page(page, data) {
-            current_from = count_data * (current_page - 1)
-            current_to = count_data * current_page
-            from = count_data * (page - 1)
-            to = count_data * page
+        const lD = gL(Array.from(aD))
+        wrB()
+        haD()
 
-            hide_page(current_from, current_to, data)
-            show_page(from, to, data)
-            colorize(page)
-            block_buttons(page)
-            
-            current_page = page
+        let crPC = $('.dgt')[0]
+        crPC.style.backgroundColor = 'gainsboro'
+
+
+
+        function btE(n) {
+            k = 0
+            switch (n.target.id) {
+                case 'first':
+                    k = 0
+                    break;
+                case 'previous':
+                    k = crP - 1
+                    break;
+                case 'next':
+                    k = crP + 1
+                    break;
+                case 'last':
+                    k = ($('.dgt').length - 1)
+                    break;
+            }
+            $('.dgt')[k].dispatchEvent(new Event('click'))
         }
 
+        function haD() {
+            $('#loading').show()
+            for (l of aD.slice(30, )) {
+                $(l).hide()
+            }
+            setTimeout(()=>{
+                $('#loading').hide()
+            }, 500)
 
+        }
 
-        function block_buttons(page) {
-            if (main_count_pages == 1) {
-                next.style.pointerEvents = 'none'
-                last.style.pointerEvents = 'none'
-                first.style.pointerEvents = 'none'
-                previous.style.pointerEvents = 'none'
-            } else {
-                if (page == main_count_pages) {
-                    next.style.pointerEvents = 'none'
-                    last.style.pointerEvents = 'none'
-                    first.style.pointerEvents = 'auto'
-                    previous.style.pointerEvents = 'auto'
-                } else if (page == 1) {
-                    first.style.pointerEvents = 'none'
-                    previous.style.pointerEvents = 'none'
-                    next.style.pointerEvents = 'auto'
-                    last.style.pointerEvents = 'auto'
-                } else {
-                    next.style.pointerEvents = 'auto'
-                    last.style.pointerEvents = 'auto'
-                    first.style.pointerEvents = 'auto'
-                    previous.style.pointerEvents = 'auto'
-                }
+        function gL(d) {
+            const l = new Array()
+            for (i = 0; i < c; i++) {
+                l.push(d.slice(30*i, 30*(i+1)))
+            }
+            return l
+        }
+
+        function wrB() {
+            for (i = 1; i <= c; i++) {
+                k = bP.insertAdjacentHTML('beforeend', `<li class='dgt'>${i}</li>`)
+            }
+            Array.from(document.getElementsByClassName('dgt')).forEach((e)=>{
+                e.addEventListener('click', gtP)
+            })
+        }
+
+        function gtP(f) {
+            const b = f.target.innerText - 1
+            crPC.style.backgroundColor = 'white'
+            crPC = f.target
+            f.target.style.backgroundColor = 'gainsboro'
+            pgD(b)
+            crP = b
+        }
+
+        function pgD(b) {
+            for (i=0; i < 30; i++) {
+                $(lD[crP][i]).hide()
+                $(lD[b][i]).show()
             }
         }
-
-        function hide_page(from, to, data){
-            for (i of data.slice(from, to)) {
-                $(i).hide()
-            };
-        };
-
-        function show_page(from, to, data) {
-            for (i of data.slice(from, to)) {
-                $(i).show()
-            };
-        };
     }
 
     paginate()
     
-
+    // document.getElementById().insertAdjacentHTML
     // SORT
 
     const tbody = $('#tbodyTable')
@@ -190,6 +172,24 @@ $(function() {
     if (inputSearch.value != '') {
         delSpan.style.display = 'block'
     }
+
+
+
+    // DATE ZONE 
+
+    document.getElementById('check-date').addEventListener('click', ()=>{
+        setDateZone()
+    })
+
+    document.getElementById('del-date').addEventListener('click', ()=>{
+        document.getElementById('from_date').value = ''
+        document.getElementById('to_date').value = ''
+        showAllData()
+    })
+
+    // До сегодняшней даты ++ 
+
+
 
     // SEARCH
 
@@ -371,4 +371,131 @@ $(function() {
         counter.text(currentData)
     }
 
+    function setDateZone() {
+        const i = new Date(document.getElementById('from_date').value)
+        const j = new Date(document.getElementById('to_date').value)
+        if (i.getFullYear() > 1900 & j.getFullYear() <= new Date().getFullYear()) {
+            for (l of data_all) {
+                t = $(l).find('#date').text().split('.');
+                tD = new Date(t[2], t[1]-1, t[0])
+                if (tD > i & tD < j) {
+                    console.log(tD);
+                    $(l).show()
+                } else {
+                    $(l).hide()
+                }
+            }
+        }
+        updateCounter()
+    }
+
 }());
+
+
+
+
+// let current_page = 1
+        // const count_data = 30
+
+        
+        // if (document.getElementById('pages')) {
+        //     document.getElementById('pages').remove()
+        // }
+        
+        // let placeholder = document.getElementById('previous')
+        // placeholder.insertAdjacentHTML('afterend', '<div id="pages"></div>')
+        // placeholder = document.getElementById('pages')
+        
+        // let table_paginate = $('tr:visible:not(.header-table)');
+        // let main_count = table_paginate.length;
+        // let main_count_pages = parseInt(main_count / 30) + 1
+        
+        // updateCounter(main_count)
+        // hide_page(0, main_count, table_paginate)
+        // show_page(0, count_data, table_paginate)
+
+        // for (i=main_count_pages; i!=0; i--) {
+        //     placeholder.insertAdjacentHTML('afterbegin', `<li name='number-page'><a>${i}</a></li>`)
+        // }
+
+        // document.getElementsByName('number-page').forEach(function(elem){
+        //     elem.addEventListener('click', ()=>{go_to_the_page(parseInt(elem.querySelector('a').textContent), table_paginate);})
+        // });
+
+        // const first = document.getElementById('first')
+        // const previous = document.getElementById('previous')
+        // const next = document.getElementById('next')
+        // const last = document.getElementById('last')
+
+        // first.addEventListener('click', ()=>go_to_the_page(1, table_paginate))
+        // previous.addEventListener('click', ()=>go_to_the_page(current_page-1, table_paginate))
+        // next.addEventListener('click', ()=>go_to_the_page(current_page+1, table_paginate))
+        // last.addEventListener('click', ()=>go_to_the_page(main_count_pages, table_paginate))
+
+        // colorize(1)
+        // block_buttons(current_page)
+    
+        // function colorize(page) {
+        //     pages = document.getElementsByName('number-page')
+        //     for (i of pages) {
+        //         if (i.textContent == page) {
+        //             i.style.backgroundColor = 'gainsboro'
+        //         } else {
+        //             i.style.backgroundColor = 'white'
+        //         }
+        //     }
+        // }
+
+        // function go_to_the_page(page, data) {
+        //     current_from = count_data * (current_page - 1)
+        //     current_to = count_data * current_page
+        //     from = count_data * (page - 1)
+        //     to = count_data * page
+
+        //     hide_page(current_from, current_to, data)
+        //     show_page(from, to, data)
+        //     colorize(page)
+        //     block_buttons(page)
+            
+        //     current_page = page
+        // }
+
+
+
+        // function block_buttons(page) {
+        //     if (main_count_pages == 1) {
+        //         next.style.pointerEvents = 'none'
+        //         last.style.pointerEvents = 'none'
+        //         first.style.pointerEvents = 'none'
+        //         previous.style.pointerEvents = 'none'
+        //     } else {
+        //         if (page == main_count_pages) {
+        //             next.style.pointerEvents = 'none'
+        //             last.style.pointerEvents = 'none'
+        //             first.style.pointerEvents = 'auto'
+        //             previous.style.pointerEvents = 'auto'
+        //         } else if (page == 1) {
+        //             first.style.pointerEvents = 'none'
+        //             previous.style.pointerEvents = 'none'
+        //             next.style.pointerEvents = 'auto'
+        //             last.style.pointerEvents = 'auto'
+        //         } else {
+        //             next.style.pointerEvents = 'auto'
+        //             last.style.pointerEvents = 'auto'
+        //             first.style.pointerEvents = 'auto'
+        //             previous.style.pointerEvents = 'auto'
+        //         }
+        //     }
+        // }
+
+        // function hide_page(from, to, data){
+        //     for (i of data.slice(from, to)) {
+        //         $(i).hide()
+        //     };
+        // };
+
+        // function show_page(from, to, data) {
+        //     for (i of data.slice(from, to)) {
+        //         $(i).show()
+        //     };
+        // };

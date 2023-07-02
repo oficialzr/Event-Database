@@ -508,7 +508,7 @@ ul, li {
     position: relative;
 }
 
-.search input {
+.search > input {
     height: 25px;
     font-size: 18px;
 
@@ -550,6 +550,43 @@ ul, li {
 .search-button-person {
     position: relative;
 }
+
+
+
+.search > div {
+    padding-right: 100px;
+    font-size: 16px;
+    position: relative;
+}
+
+.search > div > input {
+    height: 20px;
+    font-size: 16px;
+}
+
+.date-ev {
+    position: absolute;
+    cursor: pointer;
+    padding: 0;
+}
+
+#del-date {
+    top: 0px;
+    right: 35px;
+}
+
+#check-date {
+    top: 0px;
+}
+
+#check-date:hover {
+    color: var(--tbm-color);
+}
+
+#del-date:hover {
+    color: red;
+}
+
 
 
 
@@ -1177,6 +1214,7 @@ ul, li {
 }
 
 #pagination-ul {
+    padding: 0;
     display: flex;
     margin: 0px;
     margin-top: 30px;
